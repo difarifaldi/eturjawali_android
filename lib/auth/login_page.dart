@@ -13,14 +13,34 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
 
+  void showCustomSnackBar(String message, {bool isError = false}) {
+    final color = isError ? Colors.red : Colors.green;
+    final icon = isError ? Icons.error_outline : Icons.check_circle_outline;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Future<void> handleLogin() async {
     final username = usernameController.text.trim();
     final password = passwordController.text;
 
     if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Username dan password wajib diisi')),
-      );
+      showCustomSnackBar('Username dan password wajib diisi', isError: true);
       return;
     }
 
@@ -30,16 +50,10 @@ class _LoginPageState extends State<LoginPage> {
       final user = await ApiService.login(username, password);
       print('Login success: $user');
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login berhasil')));
-
-      // TODO: Simpan data user dan navigasi ke halaman berikutnya
+      showCustomSnackBar('Login berhasil');
     } catch (e) {
       print('Login error: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal login: $e')));
+      showCustomSnackBar('Gagal login: $e', isError: true);
     }
 
     setState(() => isLoading = false);
