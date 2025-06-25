@@ -51,6 +51,9 @@ class _LoginPageState extends State<LoginPage> {
       print('Login success: $user');
 
       showCustomSnackBar('Login berhasil');
+      Future.delayed(const Duration(milliseconds: 500), () {
+        Navigator.pushReplacementNamed(context, '/home', arguments: username);
+      });
     } catch (e) {
       print('Login error: $e');
       showCustomSnackBar('Gagal login: $e', isError: true);

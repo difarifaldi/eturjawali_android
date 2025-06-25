@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'auth/login_page.dart';
+import 'pages/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,8 +18,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      initialRoute: 'login',
-      routes: {'login': (context) => const LoginPage()},
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/home': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as String;
+          return HomePage(username: args);
+        },
+      },
     );
   }
 }
