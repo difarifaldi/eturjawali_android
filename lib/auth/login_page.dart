@@ -1,7 +1,49 @@
 import 'package:flutter/material.dart';
+import '../api_service.dart'; // pastikan file ini ada di /lib
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+
+  Future<void> handleLogin() async {
+    final username = usernameController.text.trim();
+    final password = passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username dan password wajib diisi')),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      final user = await ApiService.login(username, password);
+      print('Login success: $user');
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login berhasil')));
+
+      // TODO: Simpan data user dan navigasi ke halaman berikutnya
+    } catch (e) {
+      print('Login error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal login: $e')));
+    }
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +73,10 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   TextField(
+                    controller: usernameController,
                     decoration: InputDecoration(
                       labelText: 'Username',
-                      prefixIcon: Icon(Icons.person),
+                      prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -41,10 +84,11 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -54,9 +98,7 @@ class LoginPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Nanti isi aksi login
-                      },
+                      onPressed: isLoading ? null : handleLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -64,10 +106,21 @@ class LoginPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 16,
+                              width: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Text(
+                              'Login',
+                              style: TextStyle(color: Colors.white),
+                            ),
                     ),
                   ),
                 ],
