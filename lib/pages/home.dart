@@ -7,12 +7,16 @@ class HomePage extends StatefulWidget {
   final String username;
   final int userId;
   final int unitId;
+  final String namaLengkap;
+  final String kesatuanNama;
 
   const HomePage({
     super.key,
     required this.username,
     required this.userId,
     required this.unitId,
+    required this.namaLengkap,
+    required this.kesatuanNama,
   });
 
   @override
@@ -84,9 +88,24 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'Hello, ${widget.username}!',
-                      style: const TextStyle(fontSize: 24),
+                      '${widget.namaLengkap} - ${widget.username}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        widget.kesatuanNama,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: 24),
 
                     // SURAT PERINTAH

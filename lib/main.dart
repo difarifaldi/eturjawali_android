@@ -27,6 +27,8 @@ class MyApp extends StatelessWidget {
             userId: args['userId'],
             username: args['username'],
             unitId: args['unitId'],
+            namaLengkap: args['nama'],
+            kesatuanNama: args['kesatuan_nama'],
           );
         },
       },

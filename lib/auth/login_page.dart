@@ -57,8 +57,10 @@ class _LoginPageState extends State<LoginPage> {
           '/home',
           arguments: {
             'userId': user['userId'],
-            'username': user['nama'],
+            'username': user['username'],
             'unitId': user['unitId'],
+            'nama': user['nama'],
+            'kesatuan_nama': user['kesatuan_nama'],
           },
         );
       });
@@ -94,7 +96,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const Text(
                     'e-Turjawali',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   TextField(

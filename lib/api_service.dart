@@ -55,6 +55,7 @@ class ApiService {
           'username': user['login'],
           'unitId': int.parse(user['id_kesatuan']),
           'nama': user['nama'],
+          'kesatuan_nama': user['kesatuan_nama'],
         };
       } else {
         throw Exception(data['message'] ?? 'Login gagal');
