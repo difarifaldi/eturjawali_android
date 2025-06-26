@@ -47,6 +47,7 @@ class ApiService {
       if (data.containsKey('success') && data['success'] != null) {
         final user = data['success'];
         _authToken = user['token'];
+        print(user);
         return {
           'userId': int.parse(user['id_pengguna']),
           'username': user['login'],
@@ -74,39 +75,76 @@ class ApiService {
       },
     );
 
+    //print('Status Surat Perintah: ${response.statusCode}');
+    // print('Body Surat Perintah: ${response.body}');
+    // print('URL: $url');
+
     if (response.statusCode == 200) {
+      if (response.body.isEmpty) {
+        throw Exception("Response kosong dari server");
+      }
+
       final data = jsonDecode(response.body);
-      return data['data'] ?? [];
+
+      if (data['data'] != null) {
+        return data['data'];
+      } else {
+        throw Exception(
+          data['message'] ?? 'Data Surat Perintah tidak tersedia',
+        );
+      }
     } else {
-      throw Exception('Gagal mengambil surat perintah');
+      // Tambahan log detail kalau server error
+      throw Exception(
+        'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content Surat Perintah" : response.body}',
+      );
     }
   }
 
   // ambil berita terbaru
   static Future<List<dynamic>> fetchBerita(int unitId) async {
     final token = generateJWT();
+    //final token = _authToken;
+
     final url = Uri.parse('${_baseUrl}api/berita/$unitId');
 
-    final response = await http.post(
+    final response = await http.get(
       url,
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({}),
     );
 
+    //print('Status Berita: ${response.statusCode}');
+    //print('Body Berita: ${response.body}');
+    //print('URL: $url');
+
     if (response.statusCode == 200) {
+      if (response.body.isEmpty) {
+        throw Exception("Response kosong dari server");
+      }
+
       final data = jsonDecode(response.body);
-      return data['data'] ?? [];
+
+      if (data['data'] != null) {
+        return data['data'];
+      } else {
+        throw Exception(data['message'] ?? 'Data Berita tidak tersedia');
+      }
     } else {
-      throw Exception('Gagal mengambil berita');
+      // Tambahan log detail kalau server error
+      throw Exception(
+        'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content Berita" : response.body}',
+      );
     }
   }
 
   // ambil kegiatan terakhir
   static Future<List<dynamic>> fetchKegiatanTerakhir(int userId) async {
     final token = generateJWT();
+    //final token = _authToken;
+    print('Token: $token');
     final url = Uri.parse('${_baseUrl}api/latest/$userId');
 
     final response = await http.get(

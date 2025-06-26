@@ -86,19 +86,22 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...sprintList.map(
-                      (item) => Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(item['no_sprin'] ?? 'Tanpa nomor'),
+                    if (sprintList.isEmpty)
+                      const Text('Belum ada Surat Perintah')
+                    else
+                      ...sprintList.map(
+                        (item) => Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(item['nomor'] ?? 'Tanpa nomor'),
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: 32),
                     const Text(
                       'Berita Terkini',
@@ -108,20 +111,22 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...beritaList.map(
-                      (item) => Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(item['judul'] ?? 'Tanpa judul'),
+                    if (beritaList.isEmpty)
+                      const Text('Belum ada berita')
+                    else
+                      ...beritaList.map(
+                        (item) => Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(item['judul'] ?? 'Tanpa judul'),
+                          ),
                         ),
                       ),
-                    ),
-
                     const SizedBox(height: 32),
                     const Text(
                       'Kegiatan Terakhir',
@@ -131,31 +136,34 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...kegiatanList.map(
-                      (item) => Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item['nama_kegiatan'] ?? 'Tanpa nama',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                    if (kegiatanList.isEmpty)
+                      const Text('Belum ada kegiatan')
+                    else
+                      ...kegiatanList.map(
+                        (item) => Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['nama_kegiatan'] ?? 'Tanpa nama',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(item['tanggal'] ?? 'Tanpa tanggal'),
-                            ],
+                                const SizedBox(height: 4),
+                                Text(item['tanggal'] ?? 'Tanpa tanggal'),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
