@@ -90,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'assets/images/ic_launcher.png',
+                    'assets/images/ic_splash.png',
                     width: 100,
                     height: 100,
                   ),
