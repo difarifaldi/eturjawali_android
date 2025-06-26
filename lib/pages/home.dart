@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api_service.dart';
+import '../models/live_person.dart'; // import model baru
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -21,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   List<dynamic> sprintList = [];
   List<dynamic> beritaList = [];
   List<dynamic> kegiatanList = [];
+  List<LivePerson> livePersonList = []; // tambahan
   bool isLoading = true;
 
   @override
@@ -33,12 +35,14 @@ class _HomePageState extends State<HomePage> {
     try {
       final sprin = await ApiService.fetchSprint(widget.userId);
       final berita = await ApiService.fetchBerita(widget.unitId);
-      final kegiatan = await ApiService.fetchKegiatanTerakhir(widget.userId);
+      //final kegiatan = await ApiService.fetchKegiatanTerakhir(widget.userId);
+      final live = await ApiService.fetchLivePersonel(); // tambahan
 
       setState(() {
         sprintList = sprin;
         beritaList = berita;
-        kegiatanList = kegiatan;
+        livePersonList = live;
+        // kegiatanList = kegiatan;
         isLoading = false;
       });
     } catch (e) {
@@ -77,7 +81,9 @@ class _HomePageState extends State<HomePage> {
                       'Hello, ${widget.username}!',
                       style: const TextStyle(fontSize: 24),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
+
+                    // Bagian Surat Perintah
                     const Text(
                       'Surat Perintah',
                       style: TextStyle(
@@ -85,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     if (sprintList.isEmpty)
                       const Text('Belum ada Surat Perintah')
                     else
@@ -102,7 +108,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
+
                     const SizedBox(height: 32),
+
+                    // Bagian Berita
                     const Text(
                       'Berita Terkini',
                       style: TextStyle(
@@ -110,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     if (beritaList.isEmpty)
                       const Text('Belum ada berita')
                     else
@@ -127,20 +136,89 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
+
                     const SizedBox(height: 32),
+
+                    // Bagian Kegiatan Terakhir
+                    // const Text(
+                    //   'Kegiatan Terakhir',
+                    //   style: TextStyle(
+                    //     fontSize: 16,
+                    //     fontWeight: FontWeight.bold,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 8),
+                    // if (kegiatanList.isEmpty)
+                    //   const Text('Belum ada kegiatan')
+                    // else
+                    //   ...kegiatanList.map(
+                    //     (item) => Card(
+                    //       elevation: 4,
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(16),
+                    //       ),
+                    //       child: Container(
+                    //         width: double.infinity,
+                    //         padding: const EdgeInsets.all(16.0),
+                    //         child: Column(
+                    //           crossAxisAlignment: CrossAxisAlignment.start,
+                    //           children: [
+                    //             Text(
+                    //               item['jenis'] ?? 'Tanpa nama',
+                    //               style: const TextStyle(
+                    //                 fontWeight: FontWeight.bold,
+                    //               ),
+                    //             ),
+                    //             const SizedBox(height: 4),
+                    //             Text(item['waktu_simpan'] ?? 'Tanpa tanggal'),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    const SizedBox(height: 32),
+
+                    // Bagian Personel Live
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${livePersonList.length}',
+                            style: TextStyle(
+                              fontSize: 80,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                              height: 1, // Mengurangi jarak antar baris
+                            ),
+                          ),
+                          const Text(
+                            'PETUGAS ONLINE',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              height: 1, // Supaya menempel ke atas
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
                     const Text(
-                      'Kegiatan Terakhir',
+                      'Personel Online',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    if (kegiatanList.isEmpty)
-                      const Text('Belum ada kegiatan')
+                    const SizedBox(height: 8),
+
+                    if (livePersonList.isEmpty)
+                      const Text('Belum ada personel online')
                     else
-                      ...kegiatanList.map(
-                        (item) => Card(
+                      ...livePersonList.map(
+                        (person) => Card(
                           elevation: 4,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -152,13 +230,16 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item['nama_kegiatan'] ?? 'Tanpa nama',
+                                  person.nama,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(item['tanggal'] ?? 'Tanpa tanggal'),
+                                Text('Login: ${person.login}'),
+                                Text('Kesatuan: ${person.kesatuanNama}'),
+                                Text(
+                                  'Lokasi: ${person.latitude}, ${person.longitude}',
+                                ),
                               ],
                             ),
                           ),

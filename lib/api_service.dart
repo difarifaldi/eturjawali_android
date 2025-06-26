@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'utils.dart'; // agar bisa pakai sha1Hash
+import 'models/live_person.dart';
 
 class ApiService {
   static const String _baseUrl =
@@ -138,12 +139,9 @@ class ApiService {
     }
   }
 
-  // ambil kegiatan terakhir
-  static Future<List<dynamic>> fetchKegiatanTerakhir(int userId) async {
+  static Future<List<LivePerson>> fetchLivePersonel() async {
     final token = generateJWT();
-    //final token = _authToken;
-
-    final url = Uri.parse('${_baseUrl}api/latest/$userId');
+    final url = Uri.parse('${_baseUrl}api/live');
 
     final response = await http.get(
       url,
@@ -152,28 +150,61 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
-
-    print('Status Kegiatan Terakhir: ${response.statusCode}');
-    print('Body Kegiatan Terakhir: ${response.body}');
+    print('Status Personel: ${response.statusCode}');
+    print('Body Personel: ${response.body}');
     print('URL: $url');
 
     if (response.statusCode == 200) {
-      if (response.body.isEmpty) {
-        throw Exception("Response kosong dari server");
-      }
-
       final data = jsonDecode(response.body);
 
-      if (data['data'] != null) {
-        return data['data'];
+      if (data['success'] != null) {
+        return List<LivePerson>.from(
+          data['success'].map((item) => LivePerson.fromJson(item)),
+        );
       } else {
-        throw Exception(data['message'] ?? 'Data tidak tersedia');
+        return [];
       }
     } else {
-      // Tambahan log detail kalau server error
-      throw Exception(
-        'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content" : response.body}',
-      );
+      throw Exception('Gagal mengambil personel: ${response.statusCode}');
     }
   }
+
+  // ambil kegiatan terakhir
+  // static Future<List<dynamic>> fetchKegiatanTerakhir(int userId) async {
+  //   final token = generateJWT();
+  //   //final token = _authToken;
+
+  //   final url = Uri.parse('${_baseUrl}api/latest/$userId');
+
+  //   final response = await http.get(
+  //     url,
+  //     headers: {
+  //       'Authorization': 'Bearer $token',
+  //       'Content-Type': 'application/json',
+  //     },
+  //   );
+
+  //   print('Status Kegiatan Terakhir: ${response.statusCode}');
+  //   print('Body Kegiatan Terakhir: ${response.body}');
+  //   print('URL: $url');
+
+  //   if (response.statusCode == 200) {
+  //     if (response.body.isEmpty) {
+  //       throw Exception("Response kosong dari server");
+  //     }
+
+  //     final data = jsonDecode(response.body);
+
+  //     if (data['data'] != null) {
+  //       return data['data'];
+  //     } else {
+  //       throw Exception(data['message'] ?? 'Data tidak tersedia');
+  //     }
+  //   } else {
+  //     // Tambahan log detail kalau server error
+  //     throw Exception(
+  //       'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content" : response.body}',
+  //     );
+  //   }
+  // }
 }

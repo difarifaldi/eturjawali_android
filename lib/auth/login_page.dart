@@ -93,8 +93,8 @@ class _LoginPageState extends State<LoginPage> {
                     height: 100,
                   ),
                   const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    'e-Turjawali',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue),
                   ),
                   const SizedBox(height: 24),
                   TextField(
