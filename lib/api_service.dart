@@ -172,7 +172,7 @@ class ApiService {
 
   static Future<Statistik> fetchStatistik(int userId) async {
     final token = generateJWT();
-    final url = Uri.parse('${_baseUrl}api/statistik');
+    final url = Uri.parse('${_baseUrl}api/statistik/$userId');
 
     final response = await http.get(
       url,
