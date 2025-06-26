@@ -54,6 +54,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  double _percent(int jumlah) {
+    if (statistik == null || statistik!.statOnline == 0) return 0;
+    return (jumlah / statistik!.statOnline) * 100;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,62 +81,38 @@ class _HomePageState extends State<HomePage> {
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       'Hello, ${widget.username}!',
                       style: const TextStyle(fontSize: 24),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
-                    // Statistik Ringkasan
-                    if (statistik != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Statistik Kegiatan',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              _buildStatCard(
-                                'Pengaturan',
-                                statistik!.statPengaturan,
-                              ),
-                              _buildStatCard(
-                                'Penjagaan',
-                                statistik!.statPenjagaan,
-                              ),
-                              _buildStatCard(
-                                'Pengawalan',
-                                statistik!.statPengawalan,
-                              ),
-                              _buildStatCard('Patroli', statistik!.statPatroli),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                    const SizedBox(height: 32),
-
-                    // Bagian Surat Perintah
-                    const Text(
-                      'Surat Perintah',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    // SURAT PERINTAH
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Surat Perintah',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     if (sprintList.isEmpty)
-                      const Text('Belum ada Surat Perintah')
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text('Belum Ada Surat Perintah'),
+                        ),
+                      )
                     else
                       ...sprintList.map(
                         (item) => Card(
@@ -146,20 +127,32 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-
                     const SizedBox(height: 32),
 
-                    // Berita
-                    const Text(
-                      'Berita Terkini',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    // BERITA
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Berita Terkini',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     if (beritaList.isEmpty)
-                      const Text('Belum ada berita')
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text('Belum Ada Berita'),
+                        ),
+                      )
                     else
                       ...beritaList.map(
                         (item) => Card(
@@ -174,10 +167,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-
                     const SizedBox(height: 32),
 
-                    // Ringkasan Personel Online
                     Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -185,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                           Text(
                             '${livePersonList.length}',
                             style: const TextStyle(
-                              fontSize: 80,
+                              fontSize: 60,
                               color: Colors.blue,
                               fontWeight: FontWeight.bold,
                               height: 1,
@@ -202,47 +193,83 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
 
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Personel Online',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    // TOTAL ONLINE
+                    if (statistik != null) ...[
+                      _buildStatistikCard(
+                        icon: Icons.pan_tool,
+                        label: 'PENGATURAN',
+                        jumlah: statistik!.statPengaturan,
+                        percent: _percent(statistik!.statPengaturan),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (livePersonList.isEmpty)
-                      const Text('Belum ada personel online')
-                    else
-                      ...livePersonList.map(
-                        (person) => Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  person.nama,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text('Login: ${person.login}'),
-                                Text('Kesatuan: ${person.kesatuanNama}'),
-                                Text(
-                                  'Lokasi: ${person.latitude}, ${person.longitude}',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      const SizedBox(height: 12),
+                      _buildStatistikCard(
+                        icon: Icons.shield,
+                        label: 'PENJAGAAN',
+                        jumlah: statistik!.statPenjagaan,
+                        percent: _percent(statistik!.statPenjagaan),
                       ),
+                      const SizedBox(height: 12),
+                      _buildStatistikCard(
+                        icon: Icons.directions_car,
+                        label: 'PENGAWALAN',
+                        jumlah: statistik!.statPengawalan,
+                        percent: _percent(statistik!.statPengawalan),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildStatistikCard(
+                        icon: Icons.local_police,
+                        label: 'PATROLI',
+                        jumlah: statistik!.statPatroli,
+                        percent: _percent(statistik!.statPatroli),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+
+                    // LIVE PERSONNEL LIST
+                    // const Align(
+                    //   alignment: Alignment.centerLeft,
+                    //   child: Text(
+                    //     'Personel Online',
+                    //     style: TextStyle(
+                    //       fontSize: 16,
+                    //       fontWeight: FontWeight.bold,
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 8),
+                    // if (livePersonList.isEmpty)
+                    //   const Text('Belum ada personel online')
+                    // else
+                    //   ...livePersonList.map(
+                    //     (person) => Card(
+                    //       elevation: 4,
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(16),
+                    //       ),
+                    //       child: Container(
+                    //         width: double.infinity,
+                    //         padding: const EdgeInsets.all(16.0),
+                    //         child: Column(
+                    //           crossAxisAlignment: CrossAxisAlignment.start,
+                    //           children: [
+                    //             Text(
+                    //               person.nama,
+                    //               style: const TextStyle(
+                    //                 fontWeight: FontWeight.bold,
+                    //               ),
+                    //             ),
+                    //             Text('Login: ${person.login}'),
+                    //             Text('Kesatuan: ${person.kesatuanNama}'),
+                    //             Text(
+                    //               'Lokasi: ${person.latitude}, ${person.longitude}',
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
                   ],
                 ),
               ),
@@ -250,29 +277,65 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStatCard(String title, int value) {
+  Widget _buildStatistikCard({
+    required IconData icon,
+    required String label,
+    required int jumlah,
+    required double percent,
+  }) {
     return Container(
-      width: 150,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Text(
-            value.toString(),
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
+          Icon(icon, size: 48, color: Colors.grey.shade300),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  jumlah.toString().replaceAllMapped(
+                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                    (match) => '${match[1]}.',
+                  ),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${percent.toStringAsFixed(1).replaceAll('.', ',')}%',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
