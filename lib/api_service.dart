@@ -89,9 +89,7 @@ class ApiService {
       if (data['data'] != null) {
         return data['data'];
       } else {
-        throw Exception(
-          data['message'] ?? 'Data Surat Perintah tidak tersedia',
-        );
+        return [];
       }
     } else {
       // Tambahan log detail kalau server error
@@ -130,7 +128,7 @@ class ApiService {
       if (data['data'] != null) {
         return data['data'];
       } else {
-        throw Exception(data['message'] ?? 'Data Berita tidak tersedia');
+        return [];
       }
     } else {
       // Tambahan log detail kalau server error
@@ -144,7 +142,7 @@ class ApiService {
   static Future<List<dynamic>> fetchKegiatanTerakhir(int userId) async {
     final token = generateJWT();
     //final token = _authToken;
-    print('Token: $token');
+
     final url = Uri.parse('${_baseUrl}api/latest/$userId');
 
     final response = await http.get(
