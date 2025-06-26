@@ -36,17 +36,69 @@ class ApiService {
     });
 
     final response = await http.post(url, headers: headers, body: body);
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
       if (data.containsKey('success') && data['success'] != null) {
-        return data['success']; // sukses login, data user dikembalikan
+        final user = data['success'];
+
+        return {
+          'id': int.parse(user['id_pengguna']),
+          'username': user['login'],
+          'unit_id': int.parse(user['id_kesatuan']),
+          'nama': user['nama'],
+        };
       } else {
         throw Exception(data['message'] ?? 'Login gagal');
       }
     } else {
       throw Exception('HTTP ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  // ambil daftar sprint (surat perintah)
+  static Future<List<dynamic>> fetchSprint(int userId) async {
+    final token = generateJWT();
+    final url = Uri.parse('${_baseUrl}api/my_sprin/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Gagal mengambil surat perintah');
+    }
+  }
+
+  // ambil berita terbaru
+  static Future<List<dynamic>> fetchBerita(int unitId) async {
+    final token = generateJWT();
+    final url = Uri.parse('${_baseUrl}api/berita/$unitId');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Gagal mengambil berita');
     }
   }
 }

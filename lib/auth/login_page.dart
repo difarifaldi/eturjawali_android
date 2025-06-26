@@ -52,7 +52,15 @@ class _LoginPageState extends State<LoginPage> {
 
       showCustomSnackBar('Login berhasil');
       Future.delayed(const Duration(milliseconds: 500), () {
-        Navigator.pushReplacementNamed(context, '/home', arguments: username);
+        Navigator.pushReplacementNamed(
+          context,
+          '/home',
+          arguments: {
+            'userId': user['id'],
+            'username': user['nama'], // atau user['username']
+            'unitId': user['unit_id'],
+          },
+        );
       });
     } catch (e) {
       print('Login error: $e');
