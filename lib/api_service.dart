@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'utils.dart'; // agar bisa pakai sha1Hash
 import 'models/live_person.dart';
+import 'models/statistik.dart';
 
 class ApiService {
   static const String _baseUrl =
@@ -150,9 +151,9 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
-    print('Status Personel: ${response.statusCode}');
-    print('Body Personel: ${response.body}');
-    print('URL: $url');
+    // print('Status Personel: ${response.statusCode}');
+    // print('Body Personel: ${response.body}');
+    // print('URL: $url');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -166,6 +167,36 @@ class ApiService {
       }
     } else {
       throw Exception('Gagal mengambil personel: ${response.statusCode}');
+    }
+  }
+
+  static Future<Statistik> fetchStatistik(int userId) async {
+    final token = generateJWT();
+    final url = Uri.parse('${_baseUrl}api/statistik');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print('Status Statistik: ${response.statusCode}');
+    print('Body Statistik: ${response.body}');
+    print('URL: $url');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final success = data['success'];
+
+      if (success != null && success is Map<String, dynamic>) {
+        return Statistik.fromJson(success);
+      } else {
+        throw Exception('Format data statistik tidak valid');
+      }
+    } else {
+      throw Exception('Gagal mengambil statistik: ${response.statusCode}');
     }
   }
 

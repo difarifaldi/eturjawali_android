@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../api_service.dart';
-import '../models/live_person.dart'; // import model baru
+import '../models/live_person.dart';
+import '../models/statistik.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -21,8 +22,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<dynamic> sprintList = [];
   List<dynamic> beritaList = [];
-  List<dynamic> kegiatanList = [];
-  List<LivePerson> livePersonList = []; // tambahan
+  List<LivePerson> livePersonList = [];
+  Statistik? statistik;
   bool isLoading = true;
 
   @override
@@ -35,14 +36,14 @@ class _HomePageState extends State<HomePage> {
     try {
       final sprin = await ApiService.fetchSprint(widget.userId);
       final berita = await ApiService.fetchBerita(widget.unitId);
-      //final kegiatan = await ApiService.fetchKegiatanTerakhir(widget.userId);
-      final live = await ApiService.fetchLivePersonel(); // tambahan
+      final live = await ApiService.fetchLivePersonel();
+      final stats = await ApiService.fetchStatistik(widget.userId);
 
       setState(() {
         sprintList = sprin;
         beritaList = berita;
         livePersonList = live;
-        // kegiatanList = kegiatan;
+        statistik = stats;
         isLoading = false;
       });
     } catch (e) {
@@ -83,6 +84,43 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 32),
 
+                    // Statistik Ringkasan
+                    if (statistik != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Statistik Kegiatan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              _buildStatCard(
+                                'Pengaturan',
+                                statistik!.statPengaturan,
+                              ),
+                              _buildStatCard(
+                                'Penjagaan',
+                                statistik!.statPenjagaan,
+                              ),
+                              _buildStatCard(
+                                'Pengawalan',
+                                statistik!.statPengawalan,
+                              ),
+                              _buildStatCard('Patroli', statistik!.statPatroli),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                    const SizedBox(height: 32),
+
                     // Bagian Surat Perintah
                     const Text(
                       'Surat Perintah',
@@ -111,7 +149,7 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 32),
 
-                    // Bagian Berita
+                    // Berita
                     const Text(
                       'Berita Terkini',
                       style: TextStyle(
@@ -139,57 +177,18 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 32),
 
-                    // Bagian Kegiatan Terakhir
-                    // const Text(
-                    //   'Kegiatan Terakhir',
-                    //   style: TextStyle(
-                    //     fontSize: 16,
-                    //     fontWeight: FontWeight.bold,
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 8),
-                    // if (kegiatanList.isEmpty)
-                    //   const Text('Belum ada kegiatan')
-                    // else
-                    //   ...kegiatanList.map(
-                    //     (item) => Card(
-                    //       elevation: 4,
-                    //       shape: RoundedRectangleBorder(
-                    //         borderRadius: BorderRadius.circular(16),
-                    //       ),
-                    //       child: Container(
-                    //         width: double.infinity,
-                    //         padding: const EdgeInsets.all(16.0),
-                    //         child: Column(
-                    //           crossAxisAlignment: CrossAxisAlignment.start,
-                    //           children: [
-                    //             Text(
-                    //               item['jenis'] ?? 'Tanpa nama',
-                    //               style: const TextStyle(
-                    //                 fontWeight: FontWeight.bold,
-                    //               ),
-                    //             ),
-                    //             const SizedBox(height: 4),
-                    //             Text(item['waktu_simpan'] ?? 'Tanpa tanggal'),
-                    //           ],
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    const SizedBox(height: 32),
-
-                    // Bagian Personel Live
+                    // Ringkasan Personel Online
                     Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             '${livePersonList.length}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 80,
                               color: Colors.blue,
                               fontWeight: FontWeight.bold,
-                              height: 1, // Mengurangi jarak antar baris
+                              height: 1,
                             ),
                           ),
                           const Text(
@@ -197,7 +196,7 @@ class _HomePageState extends State<HomePage> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              height: 1, // Supaya menempel ke atas
+                              height: 1,
                             ),
                           ),
                         ],
@@ -213,7 +212,6 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-
                     if (livePersonList.isEmpty)
                       const Text('Belum ada personel online')
                     else
@@ -248,6 +246,35 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, int value) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value.toString(),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
