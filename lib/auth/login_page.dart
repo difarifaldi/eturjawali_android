@@ -56,9 +56,9 @@ class _LoginPageState extends State<LoginPage> {
           context,
           '/home',
           arguments: {
-            'userId': user['id'],
-            'username': user['nama'], // atau user['username']
-            'unitId': user['unit_id'],
+            'userId': user['userId'],
+            'username': user['nama'],
+            'unitId': user['unitId'],
           },
         );
       });

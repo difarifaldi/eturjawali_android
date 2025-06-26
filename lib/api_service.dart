@@ -18,6 +18,8 @@ class ApiService {
     return jwt.sign(key, algorithm: JWTAlgorithm.HS256);
   }
 
+  static String? _authToken;
+
   static Future<Map<String, dynamic>> login(
     String username,
     String password,
@@ -36,19 +38,19 @@ class ApiService {
     });
 
     final response = await http.post(url, headers: headers, body: body);
-    print('Status: ${response.statusCode}');
-    print('Body: ${response.body}');
+    // print('Status: ${response.statusCode}');
+    // print('Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
       if (data.containsKey('success') && data['success'] != null) {
         final user = data['success'];
-
+        _authToken = user['token'];
         return {
-          'id': int.parse(user['id_pengguna']),
+          'userId': int.parse(user['id_pengguna']),
           'username': user['login'],
-          'unit_id': int.parse(user['id_kesatuan']),
+          'unitId': int.parse(user['id_kesatuan']),
           'nama': user['nama'],
         };
       } else {
@@ -99,6 +101,43 @@ class ApiService {
       return data['data'] ?? [];
     } else {
       throw Exception('Gagal mengambil berita');
+    }
+  }
+
+  // ambil kegiatan terakhir
+  static Future<List<dynamic>> fetchKegiatanTerakhir(int userId) async {
+    final token = generateJWT();
+    final url = Uri.parse('${_baseUrl}api/latest/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print('Status Kegiatan Terakhir: ${response.statusCode}');
+    print('Body Kegiatan Terakhir: ${response.body}');
+    print('URL: $url');
+
+    if (response.statusCode == 200) {
+      if (response.body.isEmpty) {
+        throw Exception("Response kosong dari server");
+      }
+
+      final data = jsonDecode(response.body);
+
+      if (data['data'] != null) {
+        return data['data'];
+      } else {
+        throw Exception(data['message'] ?? 'Data tidak tersedia');
+      }
+    } else {
+      // Tambahan log detail kalau server error
+      throw Exception(
+        'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content" : response.body}',
+      );
     }
   }
 }

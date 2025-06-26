@@ -20,6 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<dynamic> sprintList = [];
   List<dynamic> beritaList = [];
+  List<dynamic> kegiatanList = [];
   bool isLoading = true;
 
   @override
@@ -32,10 +33,12 @@ class _HomePageState extends State<HomePage> {
     try {
       final sprin = await ApiService.fetchSprint(widget.userId);
       final berita = await ApiService.fetchBerita(widget.unitId);
+      final kegiatan = await ApiService.fetchKegiatanTerakhir(widget.userId);
 
       setState(() {
         sprintList = sprin;
         beritaList = berita;
+        kegiatanList = kegiatan;
         isLoading = false;
       });
     } catch (e) {
@@ -115,6 +118,41 @@ class _HomePageState extends State<HomePage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16.0),
                           child: Text(item['judul'] ?? 'Tanpa judul'),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Kegiatan Terakhir',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...kegiatanList.map(
+                      (item) => Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['nama_kegiatan'] ?? 'Tanpa nama',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(item['tanggal'] ?? 'Tanpa tanggal'),
+                            ],
+                          ),
                         ),
                       ),
                     ),
