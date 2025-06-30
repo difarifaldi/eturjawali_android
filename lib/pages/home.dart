@@ -4,6 +4,7 @@ import '../models/live_person.dart';
 import '../models/statistik.dart';
 import '../models/sprint.dart';
 import '../models/berita.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -11,6 +12,9 @@ class HomePage extends StatefulWidget {
   final int unitId;
   final String namaLengkap;
   final String kesatuanNama;
+  final String email;
+  final String noMobile;
+  final String photo;
 
   const HomePage({
     super.key,
@@ -19,6 +23,9 @@ class HomePage extends StatefulWidget {
     required this.unitId,
     required this.namaLengkap,
     required this.kesatuanNama,
+    required this.email,
+    required this.noMobile,
+    required this.photo,
   });
 
   @override
@@ -72,12 +79,39 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue,
         title: const Text('Home', style: TextStyle(color: Colors.white)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            tooltip: 'Logout',
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) {
+              if (value == 'logout') {
+                Navigator.pushReplacementNamed(context, '/login');
+              }
+              if (value == 'profile') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(
+                      nama: widget.namaLengkap,
+                      email: widget.email,
+                      noMobile: widget.noMobile,
+                      photo: widget.photo,
+                      username: widget.username,
+                      kesatuanNama: widget.kesatuanNama,
+                    ),
+                  ),
+                );
+              }
             },
+            itemBuilder: (BuildContext context) => [
+              // Tambahkan menu lain nanti, misalnya "Profile"
+              const PopupMenuItem<String>(
+                value: 'profile',
+                child: Text('Profile'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
           ),
         ],
       ),

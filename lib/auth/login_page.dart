@@ -61,6 +61,9 @@ class _LoginPageState extends State<LoginPage> {
             'unitId': user['unitId'],
             'nama': user['nama'],
             'kesatuan_nama': user['kesatuan_nama'],
+            'email': user['email'],
+            'no_mobile': user['no_mobile'],
+            'photo': user['photo'],
           },
         );
       });

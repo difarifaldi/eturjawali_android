@@ -29,6 +29,9 @@ class MyApp extends StatelessWidget {
             unitId: args['unitId'],
             namaLengkap: args['nama'],
             kesatuanNama: args['kesatuan_nama'],
+            email: args['email'],
+            noMobile: args['no_mobile'],
+            photo: args['photo'],
           );
         },
       },
