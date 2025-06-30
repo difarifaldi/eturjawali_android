@@ -274,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: _updateProfile,
+                onPressed: _showPasswordDialog,
 
                 icon: const Icon(Icons.save),
                 label: const Text('SIMPAN'),
@@ -286,18 +286,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<void> _updateProfile() async {
+  Future<void> _updateProfile({required String passwordLama}) async {
     final emailBaru = _emailController.text;
     final noHpBaru = _noHpController.text;
     final passwordBaru = _passwordController.text;
-    final passwordLama = _passwordLamaController.text;
-
-    if (passwordLama.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Harap isi password lama')));
-      return;
-    }
 
     try {
       print('userId dikirim: ${widget.userId}');
@@ -320,6 +312,42 @@ class _ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal memperbarui data: $e')));
+    }
+  }
+
+  Future<void> _showPasswordDialog() async {
+    final controller = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Password Lama'),
+          content: TextField(
+            controller: controller,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Password Lama'),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () => Navigator.of(context).pop(null),
+            ),
+            ElevatedButton(
+              child: const Text('Lanjut'),
+              onPressed: () => Navigator.of(context).pop(controller.text),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && result.isNotEmpty) {
+      _updateProfile(passwordLama: result);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password lama harus diisi')),
+      );
     }
   }
 }

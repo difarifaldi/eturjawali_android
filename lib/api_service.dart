@@ -197,25 +197,26 @@ class ApiService {
     String? newPassword,
   }) async {
     final token = generateJWT();
-
     final data = {
       'email': email,
       'no_mobile': noMobile,
       'current_password': sha1Hash(currentPassword),
-      if (newPassword != null && newPassword.isNotEmpty)
-        'password': sha1Hash(newPassword),
     };
 
-    final url = Uri.parse('${_baseUrl}api/save_me/$userId');
+    if (newPassword != null && newPassword.isNotEmpty) {
+      data['password'] = sha1Hash(newPassword);
+    }
 
+    final url = Uri.parse('${_baseUrl}api/save_me/$userId');
+    print('Token dipakai: $token');
     try {
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(data),
+        body: data, // langsung pakai Map<String, String>
       );
 
       print('Status Update: ${response.statusCode}');
