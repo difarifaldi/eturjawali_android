@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text('Home', style: TextStyle(color: Colors.white)),
+        title: const Text('e-Turjawali', style: TextStyle(color: Colors.white)),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),

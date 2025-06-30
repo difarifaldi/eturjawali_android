@@ -58,7 +58,6 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-              color: Colors.blue,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -67,13 +66,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     widget.kesatuanNama,
-                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
