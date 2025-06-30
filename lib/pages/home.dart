@@ -96,6 +96,7 @@ class _HomePageState extends State<HomePage> {
                       photo: widget.photo,
                       username: widget.username,
                       kesatuanNama: widget.kesatuanNama,
+                      userId: widget.userId,
                     ),
                   ),
                 );

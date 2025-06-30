@@ -6,6 +6,7 @@ import 'models/live_person.dart';
 import 'models/statistik.dart';
 import 'models/berita.dart';
 import 'models/sprint.dart';
+import 'dart:convert';
 
 class ApiService {
   static const String _baseUrl =
@@ -13,7 +14,7 @@ class ApiService {
 
   static String generateJWT() {
     final jwt = JWT({
-      'sub': 'eturjawali', // sementara pakai ini, nanti bisa kita sesuaikan
+      'sub': 'eturjawali',
       'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
     });
 
@@ -184,6 +185,54 @@ class ApiService {
       }
     } else {
       throw Exception('Gagal mengambil statistik: ${response.statusCode}');
+    }
+  }
+
+  //Update Profile
+  static Future<bool> updateProfile({
+    required int userId,
+    required String email,
+    required String noMobile,
+    required String currentPassword,
+    String? newPassword,
+  }) async {
+    final token = generateJWT();
+
+    final data = {
+      'email': email,
+      'no_mobile': noMobile,
+      'current_password': sha1Hash(currentPassword),
+      if (newPassword != null && newPassword.isNotEmpty)
+        'password': sha1Hash(newPassword),
+    };
+
+    final url = Uri.parse('${_baseUrl}api/save_me/$userId');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(data),
+      );
+
+      print('Status Update: ${response.statusCode}');
+      print('Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] != null) {
+          return true;
+        } else {
+          throw Exception(body['message'] ?? 'Update gagal');
+        }
+      } else {
+        throw Exception('Gagal update: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Terjadi kesalahan: $e');
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../api_service.dart';
 
 class ProfilePage extends StatefulWidget {
   final String nama;
@@ -7,6 +8,7 @@ class ProfilePage extends StatefulWidget {
   final String photo;
   final String username;
   final String kesatuanNama;
+  final int userId;
 
   const ProfilePage({
     super.key,
@@ -16,6 +18,7 @@ class ProfilePage extends StatefulWidget {
     required this.photo,
     required this.username,
     required this.kesatuanNama,
+    required this.userId,
   });
 
   @override
@@ -26,6 +29,8 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _emailController;
   late TextEditingController _noHpController;
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _passwordLamaController = TextEditingController();
+
   bool _ubahPassword = false;
 
   @override
@@ -147,6 +152,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
 
             const SizedBox(height: 24),
+            TextField(
+              controller: _passwordLamaController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password Lama'),
+            ),
+
+            const SizedBox(height: 24),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -262,21 +274,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  final emailBaru = _emailController.text;
-                  final noHpBaru = _noHpController.text;
-                  final passwordBaru = _passwordController.text;
+                onPressed: _updateProfile,
 
-                  print('Email: $emailBaru');
-                  print('No HP: $noHpBaru');
-                  if (_ubahPassword) {
-                    print('Password Baru: $passwordBaru');
-                  }
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Data berhasil diubah')),
-                  );
-                },
                 icon: const Icon(Icons.save),
                 label: const Text('SIMPAN'),
               ),
@@ -285,5 +284,42 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+
+  Future<void> _updateProfile() async {
+    final emailBaru = _emailController.text;
+    final noHpBaru = _noHpController.text;
+    final passwordBaru = _passwordController.text;
+    final passwordLama = _passwordLamaController.text;
+
+    if (passwordLama.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Harap isi password lama')));
+      return;
+    }
+
+    try {
+      print('userId dikirim: ${widget.userId}');
+      final success = await ApiService.updateProfile(
+        userId: widget.userId,
+        email: emailBaru,
+        noMobile: noHpBaru,
+        currentPassword: passwordLama,
+        newPassword: _ubahPassword && passwordBaru.isNotEmpty
+            ? passwordBaru
+            : null,
+      );
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data berhasil diperbarui')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui data: $e')));
+    }
   }
 }
