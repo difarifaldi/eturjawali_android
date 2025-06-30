@@ -4,6 +4,8 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'utils.dart'; // agar bisa pakai sha1Hash
 import 'models/live_person.dart';
 import 'models/statistik.dart';
+import 'models/berita.dart';
+import 'models/sprint.dart';
 
 class ApiService {
   static const String _baseUrl =
@@ -22,6 +24,7 @@ class ApiService {
 
   static String? _authToken;
 
+  //Login
   static Future<Map<String, dynamic>> login(
     String username,
     String password,
@@ -66,7 +69,7 @@ class ApiService {
   }
 
   // ambil daftar sprint (surat perintah)
-  static Future<List<dynamic>> fetchSprint(int userId) async {
+  static Future<List<Sprint>> fetchSprint(int userId) async {
     final token = generateJWT();
     final url = Uri.parse('${_baseUrl}api/my_sprin/$userId');
 
@@ -78,35 +81,23 @@ class ApiService {
       },
     );
 
-    //print('Status Surat Perintah: ${response.statusCode}');
-    // print('Body Surat Perintah: ${response.body}');
-    // print('URL: $url');
-
     if (response.statusCode == 200) {
-      if (response.body.isEmpty) {
-        throw Exception("Response kosong dari server");
-      }
-
       final data = jsonDecode(response.body);
-
       if (data['data'] != null) {
-        return data['data'];
+        return List<Sprint>.from(
+          data['data'].map((item) => Sprint.fromJson(item)),
+        );
       } else {
         return [];
       }
     } else {
-      // Tambahan log detail kalau server error
-      throw Exception(
-        'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content Surat Perintah" : response.body}',
-      );
+      throw Exception('Gagal mengambil sprint: ${response.statusCode}');
     }
   }
 
   // ambil berita terbaru
-  static Future<List<dynamic>> fetchBerita(int unitId) async {
+  static Future<List<Berita>> fetchBerita(int unitId) async {
     final token = generateJWT();
-    //final token = _authToken;
-
     final url = Uri.parse('${_baseUrl}api/berita/$unitId');
 
     final response = await http.get(
@@ -117,30 +108,21 @@ class ApiService {
       },
     );
 
-    //print('Status Berita: ${response.statusCode}');
-    //print('Body Berita: ${response.body}');
-    //print('URL: $url');
-
     if (response.statusCode == 200) {
-      if (response.body.isEmpty) {
-        throw Exception("Response kosong dari server");
-      }
-
       final data = jsonDecode(response.body);
-
       if (data['data'] != null) {
-        return data['data'];
+        return List<Berita>.from(
+          data['data'].map((item) => Berita.fromJson(item)),
+        );
       } else {
         return [];
       }
     } else {
-      // Tambahan log detail kalau server error
-      throw Exception(
-        'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content Berita" : response.body}',
-      );
+      throw Exception('Gagal mengambil berita: ${response.statusCode}');
     }
   }
 
+  //Ambil Live Personel
   static Future<List<LivePerson>> fetchLivePersonel() async {
     final token = generateJWT();
     final url = Uri.parse('${_baseUrl}api/live');
@@ -171,6 +153,7 @@ class ApiService {
     }
   }
 
+  //Ambil Statistik
   static Future<Statistik> fetchStatistik(int userId) async {
     final token = generateJWT();
     final url = Uri.parse('${_baseUrl}api/statistik/$userId');

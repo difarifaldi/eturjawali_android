@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../api_service.dart';
 import '../models/live_person.dart';
 import '../models/statistik.dart';
+import '../models/sprint.dart';
+import '../models/berita.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -24,8 +26,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<dynamic> sprintList = [];
-  List<dynamic> beritaList = [];
+  List<Sprint> sprintList = [];
+  List<Berita> beritaList = [];
   List<LivePerson> livePersonList = [];
   Statistik? statistik;
   bool isLoading = true;
@@ -142,7 +144,21 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16.0),
-                            child: Text(item['nomor'] ?? 'Tanpa nomor'),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.nomor,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(item.subject),
+                                const SizedBox(height: 4),
+                                Text('Mulai: ${item.getFormattedDate()}'),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -182,7 +198,28 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16.0),
-                            child: Text(item['judul'] ?? 'Tanpa judul'),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.content,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${item.workingUnitName} • ${item.getFormattedDate()}',
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
