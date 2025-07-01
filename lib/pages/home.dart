@@ -8,6 +8,7 @@ import '../models/berita.dart';
 import '../models/giat.dart';
 import 'profile_page.dart';
 import 'all_giat_page.dart';
+import 'sprint_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -177,38 +178,49 @@ class _HomePageState extends State<HomePage> {
                       )
                     else
                       ...sprintList.map(
-                        (item) => Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.subject,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                        (item) => InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SprintDetailPage(),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.subject,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(item.nomor),
-                                const SizedBox(height: 4),
-                                Text(
-                                  DateFormat('dd MMM yyyy HH:mm:ss').format(
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                      int.parse(item.startDate) * 1000,
-                                    ).toLocal(),
+                                  const SizedBox(height: 4),
+                                  Text(item.nomor),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('dd MMM yyyy HH:mm:ss').format(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                        int.parse(item.startDate) * 1000,
+                                      ).toLocal(),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
+
                     const SizedBox(height: 32),
 
                     // BERITA

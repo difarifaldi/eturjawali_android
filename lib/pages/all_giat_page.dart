@@ -71,7 +71,11 @@ class _AllGiatPageState extends State<AllGiatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Semua Kegiatan')),
+      appBar: AppBar(
+        title: const Text('Riwayat Kegiatan'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
