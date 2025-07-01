@@ -48,8 +48,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadData() async {
     try {
       final sprin = await ApiService.fetchSprint(widget.userId);
-      final berita = await ApiService.fetchBerita(widget.unitId);
-      final live = await ApiService.fetchLivePersonel();
+      final berita = await ApiService.fetchBerita(widget.unitId, widget.userId);
+      final live = await ApiService.fetchLivePersonel(widget.userId);
       final stats = await ApiService.fetchStatistik(widget.userId);
 
       setState(() {

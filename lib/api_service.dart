@@ -6,13 +6,13 @@ import 'models/live_person.dart';
 import 'models/statistik.dart';
 import 'models/berita.dart';
 import 'models/sprint.dart';
-import 'dart:convert';
 
 class ApiService {
   static const String _baseUrl =
       'https://eturjawali.korlantas.polri.go.id/api/v2/';
 
-  static String generateJWT() {
+  // JWT Lama
+  static String generateJWTLogin() {
     final jwt = JWT({
       'sub': 'eturjawali',
       'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -23,14 +23,28 @@ class ApiService {
     return jwt.sign(key, algorithm: JWTAlgorithm.HS256);
   }
 
-  static String? _authToken;
+  static String generateJWT(int userId) {
+    final jwt = JWT({
+      'uid': userId, // sesuai dengan Android
+      'iat':
+          DateTime.now().millisecondsSinceEpoch ~/
+          1000, // dalam format Unix timestamp
+    });
+
+    final token = jwt.sign(
+      SecretKey('12345678901234567890123456789012'),
+      algorithm: JWTAlgorithm.HS256,
+    );
+
+    return token;
+  }
 
   //Login
   static Future<Map<String, dynamic>> login(
     String username,
     String password,
   ) async {
-    final token = generateJWT();
+    final token = generateJWTLogin();
 
     final url = Uri.parse('${_baseUrl}api/auth');
     final headers = {
@@ -52,7 +66,6 @@ class ApiService {
 
       if (data.containsKey('success') && data['success'] != null) {
         final user = data['success'];
-        _authToken = user['token'];
         print(user);
         return {
           'userId': int.parse(user['id_pengguna']),
@@ -74,7 +87,7 @@ class ApiService {
 
   // ambil daftar sprint (surat perintah)
   static Future<List<Sprint>> fetchSprint(int userId) async {
-    final token = generateJWT();
+    final token = generateJWT(userId);
     final url = Uri.parse('${_baseUrl}api/my_sprin/$userId');
 
     final response = await http.get(
@@ -85,11 +98,14 @@ class ApiService {
       },
     );
 
+    print('Status Sprint: ${response.statusCode}');
+    print('Body Sprint: ${response.body}');
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data['data'] != null) {
+      if (data['success'] != null && data['success'] is List) {
         return List<Sprint>.from(
-          data['data'].map((item) => Sprint.fromJson(item)),
+          data['success'].map((item) => Sprint.fromJson(item)),
         );
       } else {
         return [];
@@ -100,8 +116,8 @@ class ApiService {
   }
 
   // ambil berita terbaru
-  static Future<List<Berita>> fetchBerita(int unitId) async {
-    final token = generateJWT();
+  static Future<List<Berita>> fetchBerita(int unitId, int userId) async {
+    final token = generateJWT(userId); // gunakan userId
     final url = Uri.parse('${_baseUrl}api/berita/$unitId');
 
     final response = await http.get(
@@ -127,8 +143,8 @@ class ApiService {
   }
 
   //Ambil Live Personel
-  static Future<List<LivePerson>> fetchLivePersonel() async {
-    final token = generateJWT();
+  static Future<List<LivePerson>> fetchLivePersonel(int userId) async {
+    final token = generateJWT(userId); // tambahkan userId
     final url = Uri.parse('${_baseUrl}api/live');
 
     final response = await http.get(
@@ -138,9 +154,6 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     );
-    // print('Status Personel: ${response.statusCode}');
-    // print('Body Personel: ${response.body}');
-    // print('URL: $url');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -159,7 +172,7 @@ class ApiService {
 
   //Ambil Statistik
   static Future<Statistik> fetchStatistik(int userId) async {
-    final token = generateJWT();
+    final token = generateJWT(userId);
     final url = Uri.parse('${_baseUrl}api/statistik/$userId');
 
     final response = await http.get(
@@ -196,7 +209,7 @@ class ApiService {
     required String currentPassword,
     String? newPassword,
   }) async {
-    final token = generateJWT();
+    final token = generateJWT(userId);
     final data = {
       'email': email,
       'no_mobile': noMobile,
@@ -213,10 +226,10 @@ class ApiService {
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: data, // langsung pakai Map<String, String>
+        body: jsonEncode(data), // langsung pakai Map<String, String>
       );
 
       print('Status Update: ${response.statusCode}');

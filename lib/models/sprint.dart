@@ -1,4 +1,3 @@
-// models/sprint.dart
 class Sprint {
   final int id;
   final String nomor;
@@ -24,14 +23,14 @@ class Sprint {
 
   factory Sprint.fromJson(Map<String, dynamic> json) {
     return Sprint(
-      id: json['id_sprin'],
+      id: int.tryParse(json['id_sprin']?.toString() ?? '0') ?? 0,
       nomor: json['nomor'] ?? '',
       startDate: json['waktu_mulai'] ?? '',
       endDate: json['waktu_akhir'] ?? '',
       document: json['dokumen'] ?? '',
       subject: json['perihal'] ?? '',
-      isRunning: json['online_status'] ?? 0,
-      userId: json['user_id'] ?? 0,
+      isRunning: int.tryParse(json['online_status']?.toString() ?? '0') ?? 0,
+      userId: int.tryParse(json['user_id']?.toString() ?? '0') ?? 0,
       onlineDate: json['waktu_online'],
     );
   }
