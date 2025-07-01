@@ -4,6 +4,7 @@ import '../models/live_person.dart';
 import '../models/statistik.dart';
 import '../models/sprint.dart';
 import '../models/berita.dart';
+import '../models/giat.dart';
 import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   List<Sprint> sprintList = [];
   List<Berita> beritaList = [];
   List<LivePerson> livePersonList = [];
+  List<Giat> giatList = [];
   Statistik? statistik;
   bool isLoading = true;
 
@@ -51,11 +53,13 @@ class _HomePageState extends State<HomePage> {
       final berita = await ApiService.fetchBerita(widget.unitId, widget.userId);
       final live = await ApiService.fetchLivePersonel(widget.userId);
       final stats = await ApiService.fetchStatistik(widget.userId);
+      final giat = await ApiService.fetchKegiatanTerakhir(widget.userId);
 
       setState(() {
         sprintList = sprin;
         beritaList = berita;
         livePersonList = live;
+        giatList = giat;
         statistik = stats;
         isLoading = false;
       });
@@ -260,6 +264,144 @@ class _HomePageState extends State<HomePage> {
                       ),
                     const SizedBox(height: 32),
 
+                    // Giat
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Kegiatan Terakhir',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    giatList.isEmpty
+                        ? Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16.0),
+                              child: const Text('Belum Ada Kegiatan'),
+                            ),
+                          )
+                        : SizedBox(
+                            height: 300,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: giatList.length,
+                              itemBuilder: (context, index) {
+                                final item = giatList[index];
+                                final imageUrl = item.files.isNotEmpty
+                                    ? item.files.first.fileUrl
+                                    : null;
+
+                                final formattedDate = item.time != null
+                                    ? DateTime.fromMillisecondsSinceEpoch(
+                                        int.tryParse(item.time!) != null
+                                            ? int.parse(item.time!) * 1000
+                                            : 0,
+                                      ).toLocal().toString().split(' ')[0]
+                                    : '-';
+
+                                return Container(
+                                  width: 250,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  child: Card(
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+
+                                              // Gambar jika ada
+                                              if (imageUrl != null)
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: Image.network(
+                                                    imageUrl,
+                                                    height: 120,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder:
+                                                        (
+                                                          context,
+                                                          error,
+                                                          stackTrace,
+                                                        ) => const Icon(
+                                                          Icons.broken_image,
+                                                          size: 80,
+                                                        ),
+                                                  ),
+                                                )
+                                              else
+                                                const SizedBox(
+                                                  height: 120,
+                                                  child: Center(
+                                                    child: Icon(
+                                                      Icons.image_not_supported,
+                                                    ),
+                                                  ),
+                                                ),
+                                              const SizedBox(height: 8),
+
+                                              Text(
+                                                item.workingUnitName ?? '-',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(item.desc ?? '-'),
+
+                                              const SizedBox(
+                                                height: 28,
+                                              ), // beri ruang di bawah
+                                            ],
+                                          ),
+                                        ),
+
+                                        // Tanggal di pojok kanan bawah
+                                        Positioned(
+                                          right: 12,
+                                          bottom: 12,
+                                          child: Text(
+                                            formattedDate,
+                                            style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+                    const SizedBox(height: 32),
+
                     Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -317,50 +459,6 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 32),
                     ],
-
-                    // LIVE PERSONNEL LIST
-                    // const Align(
-                    //   alignment: Alignment.centerLeft,
-                    //   child: Text(
-                    //     'Personel Online',
-                    //     style: TextStyle(
-                    //       fontSize: 16,
-                    //       fontWeight: FontWeight.bold,
-                    //     ),
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 8),
-                    // if (livePersonList.isEmpty)
-                    //   const Text('Belum ada personel online')
-                    // else
-                    //   ...livePersonList.map(
-                    //     (person) => Card(
-                    //       elevation: 4,
-                    //       shape: RoundedRectangleBorder(
-                    //         borderRadius: BorderRadius.circular(16),
-                    //       ),
-                    //       child: Container(
-                    //         width: double.infinity,
-                    //         padding: const EdgeInsets.all(16.0),
-                    //         child: Column(
-                    //           crossAxisAlignment: CrossAxisAlignment.start,
-                    //           children: [
-                    //             Text(
-                    //               person.nama,
-                    //               style: const TextStyle(
-                    //                 fontWeight: FontWeight.bold,
-                    //               ),
-                    //             ),
-                    //             Text('Login: ${person.login}'),
-                    //             Text('Kesatuan: ${person.kesatuanNama}'),
-                    //             Text(
-                    //               'Lokasi: ${person.latitude}, ${person.longitude}',
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
                   ],
                 ),
               ),

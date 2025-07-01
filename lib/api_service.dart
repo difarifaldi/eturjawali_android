@@ -6,6 +6,7 @@ import 'models/live_person.dart';
 import 'models/statistik.dart';
 import 'models/berita.dart';
 import 'models/sprint.dart';
+import 'models/giat.dart';
 
 class ApiService {
   static const String _baseUrl =
@@ -198,6 +199,36 @@ class ApiService {
     }
   }
 
+  // ambil kegiatan terakhir
+static Future<List<Giat>> fetchKegiatanTerakhir(int userId) async {
+    final token = generateJWT(userId);
+    final url = Uri.parse('${_baseUrl}api/latest/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print('Status Giat: ${response.statusCode}');
+    print('Body Giat: ${response.body}');
+    print('URL: $url');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] != null && data['success'] is List) {
+        return List<Giat>.from(
+          data['success'].map((item) => Giat.fromJson(item)),
+        );
+      } else {
+        return [];
+      }
+    } else {
+      throw Exception('Gagal mengambil Giat: ${response.statusCode}');
+    }
+  }
+
   //Update Profile
   static Future<bool> updateProfile({
     required int userId,
@@ -243,43 +274,4 @@ class ApiService {
       throw Exception('Terjadi kesalahan: $e');
     }
   }
-
-  // ambil kegiatan terakhir
-  // static Future<List<dynamic>> fetchKegiatanTerakhir(int userId) async {
-  //   final token = generateJWT();
-  //   //final token = _authToken;
-
-  //   final url = Uri.parse('${_baseUrl}api/latest/$userId');
-
-  //   final response = await http.get(
-  //     url,
-  //     headers: {
-  //       'Authorization': 'Bearer $token',
-  //       'Content-Type': 'application/json',
-  //     },
-  //   );
-
-  //   print('Status Kegiatan Terakhir: ${response.statusCode}');
-  //   print('Body Kegiatan Terakhir: ${response.body}');
-  //   print('URL: $url');
-
-  //   if (response.statusCode == 200) {
-  //     if (response.body.isEmpty) {
-  //       throw Exception("Response kosong dari server");
-  //     }
-
-  //     final data = jsonDecode(response.body);
-
-  //     if (data['data'] != null) {
-  //       return data['data'];
-  //     } else {
-  //       throw Exception(data['message'] ?? 'Data tidak tersedia');
-  //     }
-  //   } else {
-  //     // Tambahan log detail kalau server error
-  //     throw Exception(
-  //       'HTTP ${response.statusCode}: ${response.body.isEmpty ? "No content" : response.body}',
-  //     );
-  //   }
-  // }
 }
