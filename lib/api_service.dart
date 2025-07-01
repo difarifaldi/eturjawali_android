@@ -98,9 +98,6 @@ class ApiService {
       },
     );
 
-    print('Status Sprint: ${response.statusCode}');
-    print('Body Sprint: ${response.body}');
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] != null && data['success'] is List) {
@@ -221,7 +218,7 @@ class ApiService {
     }
 
     final url = Uri.parse('${_baseUrl}api/save_me/$userId');
-    print('Token dipakai: $token');
+
     try {
       final response = await http.post(
         url,
@@ -231,9 +228,6 @@ class ApiService {
         },
         body: jsonEncode(data), // langsung pakai Map<String, String>
       );
-
-      print('Status Update: ${response.statusCode}');
-      print('Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);

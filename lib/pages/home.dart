@@ -183,15 +183,15 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item.nomor,
+                                  item.subject,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(item.subject),
+                                Text(item.nomor),
                                 const SizedBox(height: 4),
-                                Text('Mulai: ${item.getFormattedDate()}'),
+                                Text(item.getFormattedDate()),
                               ],
                             ),
                           ),

@@ -15,11 +15,11 @@ class Statistik {
 
   factory Statistik.fromJson(Map<String, dynamic> json) {
     return Statistik(
-      statPengaturan: json['statPengaturan'] ?? 0,
-      statPenjagaan: json['statPenjagaan'] ?? 0,
-      statPengawalan: json['statPengawalan'] ?? 0,
-      statPatroli: json['statPatroli'] ?? 0,
-      statOnline: json['statOnline'] ?? 0,
+      statPengaturan: int.tryParse(json['pengaturan'] ?? '0') ?? 0,
+      statPenjagaan: int.tryParse(json['penjagaan'] ?? '0') ?? 0,
+      statPengawalan: int.tryParse(json['pengawalan'] ?? '0') ?? 0,
+      statPatroli: int.tryParse(json['patroli'] ?? '0') ?? 0,
+      statOnline: int.tryParse(json['online'] ?? '0') ?? 0,
     );
   }
 }
