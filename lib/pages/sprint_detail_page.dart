@@ -15,6 +15,13 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   LatLng? userLocation;
   String currentTime = '';
 
+  final Distance distance = Distance();
+  final LatLng lokasiKesatuan = LatLng(
+    -6.244222176711041,
+    106.8554326236161,
+  ); // Ganti dengan lokasi kesatuan sebenarnya
+  final double radiusMeter = 100; // radius maksimum (misal 100 meter)
+
   @override
   void initState() {
     super.initState();
@@ -40,7 +47,9 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
 
     setState(() {
       userLocation = LatLng(position.latitude, position.longitude);
+      print("User Location: $userLocation");
     });
+    print("Lokasi diperoleh: $userLocation");
   }
 
   @override
@@ -108,6 +117,16 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             ),
           ),
 
+          // Menampilkan pesan jika lokasi belum tersedia
+          if (userLocation == null)
+            const Padding(
+              padding: EdgeInsets.all(8),
+              child: Text(
+                'Sedang mencari lokasi...',
+                style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            ),
           // Tombol Mulai
           Positioned(
             bottom: 0,
@@ -115,14 +134,99 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             right: 0,
             child: ElevatedButton(
               onPressed: () {
-                // aksi ketika tombol ditekan
+                print("User Location saat tekan tombol: $userLocation");
+                if (userLocation == null) return;
+
+                final double jarak = distance.as(
+                  LengthUnit.Meter,
+                  userLocation!,
+                  lokasiKesatuan,
+                );
+
+                if (jarak > radiusMeter) {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      TextEditingController alasanController =
+                          TextEditingController();
+
+                      return AlertDialog(
+                        title: const Text(
+                          'Konfirmasi',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start, // biar sejajar kiri
+                          children: [
+                            const Text(
+                              'Anda berada di luar radius',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Masukkan alasan untuk lanjut giat',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: alasanController,
+                              decoration: const InputDecoration(
+                                hintText: 'Masukan Keterangan',
+                                border: UnderlineInputBorder(),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.blue),
+                                ),
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Tidak'),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Giat dimulai (luar radius)'),
+                                ),
+                              );
+                            },
+                            child: const Text('Ya'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Giat dimulai')));
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 minimumSize: const Size.fromHeight(60),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // <- tanpa radius sudut
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               child: const Text(
                 "MULAI",
