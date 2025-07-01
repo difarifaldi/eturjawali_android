@@ -6,6 +6,7 @@ import '../models/sprint.dart';
 import '../models/berita.dart';
 import '../models/giat.dart';
 import 'profile_page.dart';
+import 'all_giat_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -265,16 +266,31 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 32),
 
                     // Giat
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Kegiatan Terakhir',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Kegiatan Terakhir',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    AllGiatPage(userId: widget.userId),
+                              ),
+                            );
+                          },
+                          child: const Text('Selengkapnya'),
+                        ),
+                      ],
                     ),
+
                     const SizedBox(height: 8),
                     giatList.isEmpty
                         ? Card(
@@ -402,6 +418,17 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 32),
 
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Personel Aktif',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

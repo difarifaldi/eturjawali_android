@@ -200,7 +200,7 @@ class ApiService {
   }
 
   // ambil kegiatan terakhir
-static Future<List<Giat>> fetchKegiatanTerakhir(int userId) async {
+  static Future<List<Giat>> fetchKegiatanTerakhir(int userId) async {
     final token = generateJWT(userId);
     final url = Uri.parse('${_baseUrl}api/latest/$userId');
 
@@ -227,6 +227,39 @@ static Future<List<Giat>> fetchKegiatanTerakhir(int userId) async {
     } else {
       throw Exception('Gagal mengambil Giat: ${response.statusCode}');
     }
+  }
+
+  //All Giat
+  static Future<List<Giat>> fetchAllGiat({
+    required int userId,
+    int sprintId = 0,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final token = generateJWT(userId);
+    final url = Uri.parse(
+      '${_baseUrl}api/my_giat/$userId/$sprintId/$limit/$offset',
+    );
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({}), // sesuai contoh, data di-body kosong
+    );
+
+    print('Status All Giat: ${response.statusCode}');
+    print('Body All Giat: ${response.body}');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] != null && data['success'] is List) {
+        return List<Giat>.from(data['success'].map((e) => Giat.fromJson(e)));
+      }
+    }
+
+    return [];
   }
 
   //Update Profile
