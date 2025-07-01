@@ -87,37 +87,64 @@ class _AllGiatPageState extends State<AllGiatPage> {
                 }
 
                 final item = allGiat[index];
-                final imageUrl = item.files.isNotEmpty
-                    ? item.files.first.fileUrl
-                    : null;
-                final date = item.time != null
+                final dateTimeString = item.time != null
                     ? DateTime.fromMillisecondsSinceEpoch(
                         int.tryParse(item.time!) != null
                             ? int.parse(item.time!) * 1000
                             : 0,
-                      ).toLocal().toString().split(' ')[0]
+                      ).toLocal().toString()
                     : '-';
 
                 return Card(
                   margin: const EdgeInsets.all(12),
-                  child: ListTile(
-                    title: Text(item.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Stack(
                       children: [
-                        Text(item.desc ?? '-'),
-                        Text(item.workingUnitName ?? '-'),
-                        Text(date),
+                        // Tanggal & waktu di pojok kanan atas
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Text(
+                            dateTimeString,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.sprintNo ?? '-',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              item.desc ?? '-',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.workingUnitName ?? '-',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                    trailing: imageUrl != null
-                        ? Image.network(
-                            imageUrl,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          )
-                        : const Icon(Icons.image_not_supported),
                   ),
                 );
               },
