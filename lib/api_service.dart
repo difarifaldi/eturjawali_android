@@ -12,7 +12,7 @@ class ApiService {
   static const String _baseUrl =
       'https://eturjawali.korlantas.polri.go.id/api/v2/';
 
-  // JWT Lama
+  // JWT Login
   static String generateJWTLogin() {
     final jwt = JWT({
       'sub': 'eturjawali',
@@ -24,6 +24,7 @@ class ApiService {
     return jwt.sign(key, algorithm: JWTAlgorithm.HS256);
   }
 
+  // JWT Pindah Halaman
   static String generateJWT(int userId) {
     final jwt = JWT({
       'uid': userId, // sesuai dengan Android
@@ -128,9 +129,9 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data['data'] != null) {
+      if (data['success'] != null && data['success'] is List) {
         return List<Berita>.from(
-          data['data'].map((item) => Berita.fromJson(item)),
+          data['success'].map((item) => Berita.fromJson(item)),
         );
       } else {
         return [];
@@ -181,10 +182,6 @@ class ApiService {
       },
     );
 
-    print('Status Statistik: ${response.statusCode}');
-    print('Body Statistik: ${response.body}');
-    print('URL: $url');
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final success = data['success'];
@@ -212,9 +209,6 @@ class ApiService {
       },
     );
 
-    print('Status Giat: ${response.statusCode}');
-    print('Body Giat: ${response.body}');
-    print('URL: $url');
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] != null && data['success'] is List) {
@@ -250,8 +244,6 @@ class ApiService {
       body: jsonEncode({}), // sesuai contoh, data di-body kosong
     );
 
-    print('Status All Giat: ${response.statusCode}');
-    print('Body All Giat: ${response.body}');
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] != null && data['success'] is List) {

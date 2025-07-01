@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../api_service.dart';
 import '../models/giat.dart';
 
@@ -88,11 +89,13 @@ class _AllGiatPageState extends State<AllGiatPage> {
 
                 final item = allGiat[index];
                 final dateTimeString = item.time != null
-                    ? DateTime.fromMillisecondsSinceEpoch(
-                        int.tryParse(item.time!) != null
-                            ? int.parse(item.time!) * 1000
-                            : 0,
-                      ).toLocal().toString()
+                    ? DateFormat('dd MMM yyyy HH:mm:ss').format(
+                        DateTime.fromMillisecondsSinceEpoch(
+                          int.tryParse(item.time!) != null
+                              ? int.parse(item.time!) * 1000
+                              : 0,
+                        ).toLocal(),
+                      )
                     : '-';
 
                 return Card(
@@ -139,7 +142,10 @@ class _AllGiatPageState extends State<AllGiatPage> {
                             const SizedBox(height: 4),
                             Text(
                               item.workingUnitName ?? '-',
-                              style: const TextStyle(fontSize: 14),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           ],
                         ),

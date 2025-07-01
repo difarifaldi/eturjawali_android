@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../api_service.dart';
 import '../models/live_person.dart';
 import '../models/statistik.dart';
@@ -196,7 +197,13 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(height: 4),
                                 Text(item.nomor),
                                 const SizedBox(height: 4),
-                                Text(item.getFormattedDate()),
+                                Text(
+                                  DateFormat('dd MMM yyyy HH:mm:ss').format(
+                                    DateTime.fromMillisecondsSinceEpoch(
+                                      int.parse(item.startDate) * 1000,
+                                    ).toLocal(),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -305,7 +312,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           )
                         : SizedBox(
-                            height: 300,
+                            height: 380,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: giatList.length,
@@ -316,11 +323,13 @@ class _HomePageState extends State<HomePage> {
                                     : null;
 
                                 final formattedDate = item.time != null
-                                    ? DateTime.fromMillisecondsSinceEpoch(
-                                        int.tryParse(item.time!) != null
-                                            ? int.parse(item.time!) * 1000
-                                            : 0,
-                                      ).toLocal().toString().split(' ')[0]
+                                    ? DateFormat('dd MMM yyyy HH:mm:ss').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                          int.tryParse(item.time!) != null
+                                              ? int.parse(item.time!) * 1000
+                                              : 0,
+                                        ).toLocal(),
+                                      )
                                     : '-';
 
                                 return Container(
@@ -355,7 +364,7 @@ class _HomePageState extends State<HomePage> {
                                                       BorderRadius.circular(12),
                                                   child: Image.network(
                                                     imageUrl,
-                                                    height: 120,
+                                                    height: 180,
                                                     width: double.infinity,
                                                     fit: BoxFit.cover,
                                                     errorBuilder:
@@ -371,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                                                 )
                                               else
                                                 const SizedBox(
-                                                  height: 120,
+                                                  height: 180,
                                                   child: Center(
                                                     child: Icon(
                                                       Icons.image_not_supported,
@@ -384,6 +393,7 @@ class _HomePageState extends State<HomePage> {
                                                 item.workingUnitName ?? '-',
                                                 style: const TextStyle(
                                                   fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
@@ -428,7 +438,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 24),
                     Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
