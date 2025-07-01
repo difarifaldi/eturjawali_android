@@ -74,9 +74,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  double get _totalKegiatan =>
+      statistik!.statPengaturan.toDouble() +
+      statistik!.statPenjagaan.toDouble() +
+      statistik!.statPengawalan.toDouble() +
+      statistik!.statPatroli.toDouble();
+
   double _percent(int jumlah) {
-    if (statistik == null || statistik!.statOnline == 0) return 0;
-    return (jumlah / statistik!.statOnline) * 100;
+    if (_totalKegiatan == 0) return 0;
+    return (jumlah / _totalKegiatan) * 100;
   }
 
   @override
