@@ -147,6 +147,53 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     print("Lokasi diperoleh: $userLocation");
   }
 
+  //Dialog Alasan
+  void showAlasanDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required void Function(String alasan) onConfirm,
+  }) {
+    final TextEditingController alasanController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: alasanController,
+                decoration: const InputDecoration(
+                  hintText: 'Masukan Keterangan',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tidak'),
+            ),
+            TextButton(
+              onPressed: () {
+                final alasan = alasanController.text;
+                Navigator.of(context).pop();
+                onConfirm(alasan);
+              },
+              child: const Text('Ya'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -260,57 +307,22 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   );
 
                   if (jarak > radiusMeter) {
-                    showDialog(
+                    showAlasanDialog(
                       context: context,
-                      builder: (context) {
-                        final TextEditingController alasanController =
-                            TextEditingController();
-                        return AlertDialog(
-                          title: const Text('Konfirmasi'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Anda berada di luar radius'),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Masukkan alasan untuk menyelesaikan giat',
-                              ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: alasanController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Masukan Keterangan',
-                                ),
-                              ),
-                            ],
+                      title: 'Konfirmasi',
+                      message:
+                          'Anda berada di luar radius.\nMasukkan alasan untuk menyelesaikan giat:',
+                      onConfirm: (alasan) {
+                        checkoutData(alasan);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Giat dihentikan (luar radius)'),
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Tidak'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                final alasan = alasanController.text;
-                                Navigator.of(context).pop();
-                                checkoutData(alasan); // <-- kirim alasan
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Giat dihentikan (luar radius)',
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text('Ya'),
-                            ),
-                          ],
                         );
                       },
                     );
                   } else {
-                    checkoutData(''); // dalam radius, tanpa alasan
+                    checkoutData('');
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Giat dihentikan')),
                     );
@@ -328,49 +340,18 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                 );
 
                 if (jarak > radiusMeter) {
-                  showDialog(
+                  showAlasanDialog(
                     context: context,
-                    builder: (context) {
-                      final TextEditingController alasanController =
-                          TextEditingController();
-                      return AlertDialog(
-                        title: const Text('Konfirmasi'),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Anda berada di luar radius'),
-                            const SizedBox(height: 4),
-                            const Text('Masukkan alasan untuk lanjut giat'),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: alasanController,
-                              decoration: const InputDecoration(
-                                hintText: 'Masukan Keterangan',
-                              ),
-                            ),
-                          ],
+                    title: 'Konfirmasi',
+                    message:
+                        'Anda berada di luar radius.\nMasukkan alasan untuk lanjut giat:',
+                    onConfirm: (alasan) {
+                      startElapsedTimer();
+                      checkinData(alasan);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Giat dimulai (luar radius)'),
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Tidak'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              final alasan = alasanController.text;
-                              Navigator.of(context).pop();
-                              startElapsedTimer();
-                              checkinData(alasan);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Giat dimulai (luar radius)'),
-                                ),
-                              );
-                            },
-                            child: const Text('Ya'),
-                          ),
-                        ],
                       );
                     },
                   );
@@ -382,11 +363,12 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   ).showSnackBar(const SnackBar(content: Text('Giat dimulai')));
                 }
               },
-
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 minimumSize: const Size.fromHeight(60),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                ),
               ),
               child: Text(
                 isTimerRunning ? "SELESAIKAN" : "MULAI",
