@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../api_service.dart';
 import '../models/giat.dart';
+import 'giat_detail_page.dart';
 
 class AllGiatPage extends StatefulWidget {
   final int userId;
@@ -109,51 +110,68 @@ class _AllGiatPageState extends State<AllGiatPage> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Stack(
-                      children: [
-                        // Tanggal & waktu di pojok kanan atas
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Text(
-                            dateTimeString,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      splashColor: Colors.blue.withOpacity(0.2),
+                      highlightColor: Colors.transparent,
+                      onTap: () {
+                        print('Card diklik dengan ID: ${item.id}');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GiatDetailPage(
+                              giatId: int.parse(item.id),
+                              userId: widget.userId,
                             ),
                           ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.sprintNo ?? '-',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              item.desc ?? '-',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.workingUnitName ?? '-',
+                        );
+                      },
+                      child: Stack(
+                        children: [
+                          // Tanggal & waktu di pojok kanan atas
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Text(
+                              dateTimeString,
                               style: const TextStyle(
                                 fontSize: 12,
-                                fontStyle: FontStyle.italic,
+                                color: Colors.grey,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.sprintNo ?? '-',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                item.desc ?? '-',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.workingUnitName ?? '-',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

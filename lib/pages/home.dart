@@ -9,6 +9,7 @@ import '../models/giat.dart';
 import 'profile_page.dart';
 import 'all_giat_page.dart';
 import 'sprint_detail_page.dart';
+import 'giat_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -368,88 +369,115 @@ class _HomePageState extends State<HomePage> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
                                       ),
-                                      child: Stack(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item.name,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 8),
-
-                                                // Gambar jika ada
-                                                if (imageUrl != null)
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                    child: Image.network(
-                                                      imageUrl,
-                                                      height: 180,
-                                                      width: double.infinity,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder:
-                                                          (
-                                                            context,
-                                                            error,
-                                                            stackTrace,
-                                                          ) => const Icon(
-                                                            Icons.broken_image,
-                                                            size: 80,
-                                                          ),
-                                                    ),
-                                                  )
-                                                else
-                                                  const SizedBox(
-                                                    height: 180,
-                                                    child: Center(
-                                                      child: Icon(
-                                                        Icons
-                                                            .image_not_supported,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                const SizedBox(height: 8),
-
-                                                Text(
-                                                  item.workingUnitName ?? '-',
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(item.desc ?? '-'),
-
-                                                const SizedBox(
-                                                  height: 28,
-                                                ), // beri ruang di bawah
-                                              ],
-                                            ),
-                                          ),
-
-                                          // Tanggal di pojok kanan bawah
-                                          Positioned(
-                                            right: 12,
-                                            bottom: 12,
-                                            child: Text(
-                                              formattedDate,
-                                              style: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 12,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(16),
+                                        splashColor: Colors.blue.withOpacity(
+                                          0.2,
+                                        ),
+                                        highlightColor: Colors.transparent,
+                                        onTap: () {
+                                          print(
+                                            'Card diklik dengan ID: ${item.id}',
+                                          );
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => GiatDetailPage(
+                                                giatId: int.parse(item.id),
+                                                userId: widget.userId,
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          );
+                                        },
+
+                                        child: Stack(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(
+                                                12.0,
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item.name,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+
+                                                  // Gambar jika ada
+                                                  if (imageUrl != null)
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      child: Image.network(
+                                                        imageUrl,
+                                                        height: 180,
+                                                        width: double.infinity,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder:
+                                                            (
+                                                              context,
+                                                              error,
+                                                              stackTrace,
+                                                            ) => const Icon(
+                                                              Icons
+                                                                  .broken_image,
+                                                              size: 80,
+                                                            ),
+                                                      ),
+                                                    )
+                                                  else
+                                                    const SizedBox(
+                                                      height: 180,
+                                                      child: Center(
+                                                        child: Icon(
+                                                          Icons
+                                                              .image_not_supported,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  const SizedBox(height: 8),
+
+                                                  Text(
+                                                    item.workingUnitName ?? '-',
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(item.desc ?? '-'),
+
+                                                  const SizedBox(
+                                                    height: 28,
+                                                  ), // beri ruang di bawah
+                                                ],
+                                              ),
+                                            ),
+
+                                            // Tanggal di pojok kanan bawah
+                                            Positioned(
+                                              right: 12,
+                                              bottom: 12,
+                                              child: Text(
+                                                formattedDate,
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   );

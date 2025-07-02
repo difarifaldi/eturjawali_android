@@ -254,6 +254,42 @@ class ApiService {
     return [];
   }
 
+  //Detail Giat
+  static Future<Giat?> fetchGiatDetail(int giatId, int userId) async {
+    final token = generateJWT(userId);
+    final url = Uri.parse('${_baseUrl}api/giat/$giatId');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print('Giat detail status: ${response.statusCode}');
+    print('Giat detail response: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print('Body: $data');
+
+      if (data['success'] != null && data['success'] is Map<String, dynamic>) {
+        try {
+          return Giat.fromJson(data['success']);
+        } catch (e) {
+          print('Error saat parsing Giat: $e');
+          return null;
+        }
+      }
+    } else {
+      print('Status error: ${response.statusCode}');
+      throw Exception('Gagal mengambil Giat: ${response.statusCode}');
+    }
+
+    return null;
+  }
+
   //Update Profile
   static Future<bool> updateProfile({
     required int userId,
