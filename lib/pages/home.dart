@@ -51,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> loadData() async {
+    setState(() => isLoading = true);
     try {
       final sprin = await ApiService.fetchSprint(widget.userId);
       final berita = await ApiService.fetchBerita(widget.unitId, widget.userId);
@@ -94,12 +95,12 @@ class _HomePageState extends State<HomePage> {
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'logout') {
                 Navigator.pushReplacementNamed(context, '/login');
               }
               if (value == 'profile') {
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => ProfilePage(
@@ -113,6 +114,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 );
+                if (result == true) {
+                  loadData(); // refresh data setelah update profil
+                }
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -133,67 +137,133 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.all(24.0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${widget.namaLengkap} - ${widget.username}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        widget.kesatuanNama,
+            : RefreshIndicator(
+                onRefresh: loadData,
+                child: SingleChildScrollView(
+                  physics:
+                      const AlwaysScrollableScrollPhysics(), // agar bisa ditarik meskipun tidak scrollable penuh
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${widget.namaLengkap} - ${widget.username}',
                         style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // SURAT PERINTAH
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Surat Perintah',
-                        style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (sprintList.isEmpty)
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          widget.kesatuanNama,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text('Belum Ada Surat Perintah'),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // SURAT PERINTAH
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Surat Perintah',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    else
-                      ...sprintList.map(
-                        (item) => InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const SprintDetailPage(),
+                      ),
+                      const SizedBox(height: 8),
+                      if (sprintList.isEmpty)
+                        Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text('Belum Ada Surat Perintah'),
+                          ),
+                        )
+                      else
+                        ...sprintList.map(
+                          (item) => InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SprintDetailPage(),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            );
-                          },
-                          child: Card(
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.subject,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(item.nomor),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      DateFormat('dd MMM yyyy HH:mm:ss').format(
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                          int.parse(item.startDate) * 1000,
+                                        ).toLocal(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 32),
+
+                      // BERITA
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Berita Terkini',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (beritaList.isEmpty)
+                        Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text('Belum Ada Berita'),
+                          ),
+                        )
+                      else
+                        ...beritaList.map(
+                          (item) => Card(
                             elevation: 4,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -205,316 +275,260 @@ class _HomePageState extends State<HomePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.subject,
+                                    item.title,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(item.nomor),
+                                  Text(
+                                    item.content,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    DateFormat('dd MMM yyyy HH:mm:ss').format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                        int.parse(item.startDate) * 1000,
-                                      ).toLocal(),
-                                    ),
+                                    '${item.workingUnitName} • ${item.getFormattedDate()}',
+                                    style: const TextStyle(color: Colors.grey),
                                   ),
                                 ],
                               ),
                             ),
                           ),
                         ),
-                      ),
+                      const SizedBox(height: 32),
 
-                    const SizedBox(height: 32),
-
-                    // BERITA
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Berita Terkini',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (beritaList.isEmpty)
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text('Belum Ada Berita'),
-                        ),
-                      )
-                    else
-                      ...beritaList.map(
-                        (item) => Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item.content,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${item.workingUnitName} • ${item.getFormattedDate()}',
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                              ],
+                      // Giat
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Kegiatan Terakhir',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      AllGiatPage(userId: widget.userId),
+                                ),
+                              );
+                            },
+                            child: const Text('Selengkapnya'),
+                          ),
+                        ],
                       ),
-                    const SizedBox(height: 32),
 
-                    // Giat
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Kegiatan Terakhir',
+                      const SizedBox(height: 8),
+                      giatList.isEmpty
+                          ? Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16.0),
+                                child: const Text('Belum Ada Kegiatan'),
+                              ),
+                            )
+                          : SizedBox(
+                              height: 380,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: giatList.length,
+                                itemBuilder: (context, index) {
+                                  final item = giatList[index];
+                                  final imageUrl = item.files.isNotEmpty
+                                      ? item.files.first.fileUrl
+                                      : null;
+
+                                  final formattedDate = item.time != null
+                                      ? DateFormat(
+                                          'dd MMM yyyy HH:mm:ss',
+                                        ).format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                            int.tryParse(item.time!) != null
+                                                ? int.parse(item.time!) * 1000
+                                                : 0,
+                                          ).toLocal(),
+                                        )
+                                      : '-';
+
+                                  return Container(
+                                    width: 250,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    child: Card(
+                                      elevation: 4,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+
+                                                // Gambar jika ada
+                                                if (imageUrl != null)
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    child: Image.network(
+                                                      imageUrl,
+                                                      height: 180,
+                                                      width: double.infinity,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder:
+                                                          (
+                                                            context,
+                                                            error,
+                                                            stackTrace,
+                                                          ) => const Icon(
+                                                            Icons.broken_image,
+                                                            size: 80,
+                                                          ),
+                                                    ),
+                                                  )
+                                                else
+                                                  const SizedBox(
+                                                    height: 180,
+                                                    child: Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .image_not_supported,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                const SizedBox(height: 8),
+
+                                                Text(
+                                                  item.workingUnitName ?? '-',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(item.desc ?? '-'),
+
+                                                const SizedBox(
+                                                  height: 28,
+                                                ), // beri ruang di bawah
+                                              ],
+                                            ),
+                                          ),
+
+                                          // Tanggal di pojok kanan bawah
+                                          Positioned(
+                                            right: 12,
+                                            bottom: 12,
+                                            child: Text(
+                                              formattedDate,
+                                              style: const TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                      const SizedBox(height: 32),
+
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Personel Aktif',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    AllGiatPage(userId: widget.userId),
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${livePersonList.length}',
+                              style: const TextStyle(
+                                fontSize: 60,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                                height: 1,
                               ),
-                            );
-                          },
-                          child: const Text('Selengkapnya'),
+                            ),
+                            const Text(
+                              'PETUGAS ONLINE',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                height: 1,
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // TOTAL ONLINE
+                      if (statistik != null) ...[
+                        _buildStatistikCard(
+                          icon: Icons.pan_tool,
+                          label: 'PENGATURAN',
+                          jumlah: statistik!.statPengaturan,
+                          percent: _percent(statistik!.statPengaturan),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildStatistikCard(
+                          icon: Icons.shield,
+                          label: 'PENJAGAAN',
+                          jumlah: statistik!.statPenjagaan,
+                          percent: _percent(statistik!.statPenjagaan),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildStatistikCard(
+                          icon: Icons.directions_car,
+                          label: 'PENGAWALAN',
+                          jumlah: statistik!.statPengawalan,
+                          percent: _percent(statistik!.statPengawalan),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildStatistikCard(
+                          icon: Icons.local_police,
+                          label: 'PATROLI',
+                          jumlah: statistik!.statPatroli,
+                          percent: _percent(statistik!.statPatroli),
+                        ),
+                        const SizedBox(height: 32),
                       ],
-                    ),
-
-                    const SizedBox(height: 8),
-                    giatList.isEmpty
-                        ? Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16.0),
-                              child: const Text('Belum Ada Kegiatan'),
-                            ),
-                          )
-                        : SizedBox(
-                            height: 380,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: giatList.length,
-                              itemBuilder: (context, index) {
-                                final item = giatList[index];
-                                final imageUrl = item.files.isNotEmpty
-                                    ? item.files.first.fileUrl
-                                    : null;
-
-                                final formattedDate = item.time != null
-                                    ? DateFormat('dd MMM yyyy HH:mm:ss').format(
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                          int.tryParse(item.time!) != null
-                                              ? int.parse(item.time!) * 1000
-                                              : 0,
-                                        ).toLocal(),
-                                      )
-                                    : '-';
-
-                                return Container(
-                                  width: 250,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  child: Card(
-                                    elevation: 4,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                item.name,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-
-                                              // Gambar jika ada
-                                              if (imageUrl != null)
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  child: Image.network(
-                                                    imageUrl,
-                                                    height: 180,
-                                                    width: double.infinity,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder:
-                                                        (
-                                                          context,
-                                                          error,
-                                                          stackTrace,
-                                                        ) => const Icon(
-                                                          Icons.broken_image,
-                                                          size: 80,
-                                                        ),
-                                                  ),
-                                                )
-                                              else
-                                                const SizedBox(
-                                                  height: 180,
-                                                  child: Center(
-                                                    child: Icon(
-                                                      Icons.image_not_supported,
-                                                    ),
-                                                  ),
-                                                ),
-                                              const SizedBox(height: 8),
-
-                                              Text(
-                                                item.workingUnitName ?? '-',
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(item.desc ?? '-'),
-
-                                              const SizedBox(
-                                                height: 28,
-                                              ), // beri ruang di bawah
-                                            ],
-                                          ),
-                                        ),
-
-                                        // Tanggal di pojok kanan bawah
-                                        Positioned(
-                                          right: 12,
-                                          bottom: 12,
-                                          child: Text(
-                                            formattedDate,
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                    const SizedBox(height: 32),
-
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Personel Aktif',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${livePersonList.length}',
-                            style: const TextStyle(
-                              fontSize: 60,
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                              height: 1,
-                            ),
-                          ),
-                          const Text(
-                            'PETUGAS ONLINE',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              height: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // TOTAL ONLINE
-                    if (statistik != null) ...[
-                      _buildStatistikCard(
-                        icon: Icons.pan_tool,
-                        label: 'PENGATURAN',
-                        jumlah: statistik!.statPengaturan,
-                        percent: _percent(statistik!.statPengaturan),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildStatistikCard(
-                        icon: Icons.shield,
-                        label: 'PENJAGAAN',
-                        jumlah: statistik!.statPenjagaan,
-                        percent: _percent(statistik!.statPenjagaan),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildStatistikCard(
-                        icon: Icons.directions_car,
-                        label: 'PENGAWALAN',
-                        jumlah: statistik!.statPengawalan,
-                        percent: _percent(statistik!.statPengawalan),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildStatistikCard(
-                        icon: Icons.local_police,
-                        label: 'PATROLI',
-                        jumlah: statistik!.statPatroli,
-                        percent: _percent(statistik!.statPatroli),
-                      ),
-                      const SizedBox(height: 32),
                     ],
-                  ],
+                  ),
                 ),
               ),
       ),

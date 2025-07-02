@@ -152,13 +152,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
 
             const SizedBox(height: 24),
-            TextField(
-              controller: _passwordLamaController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password Lama'),
-            ),
-
-            const SizedBox(height: 24),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -307,6 +300,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Data berhasil diperbarui')),
         );
+        Navigator.pop(context, true); // kirim sinyal kembali
       }
     } catch (e) {
       ScaffoldMessenger.of(
