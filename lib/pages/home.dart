@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../api_service.dart';
 import '../models/live_person.dart';
 import '../models/statistik.dart';
@@ -51,6 +52,13 @@ class _HomePageState extends State<HomePage> {
     loadData();
   }
 
+  Future<void> handleLogout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // menghapus semua session/login
+
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   Future<void> loadData() async {
     setState(() => isLoading = true);
     try {
@@ -98,7 +106,7 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onSelected: (value) async {
               if (value == 'logout') {
-                Navigator.pushReplacementNamed(context, '/login');
+                await handleLogout(context);
               }
               if (value == 'profile') {
                 final result = await Navigator.push(

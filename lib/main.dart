@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'auth/login_page.dart';
 import 'pages/home.dart';
+import 'pages/splash_page.dart'; // tambahkan
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      // ⬇ ganti jadi SplashPage
+      home: const SplashPage(),
+
       routes: {
         '/login': (context) => const LoginPage(),
         '/home': (context) {

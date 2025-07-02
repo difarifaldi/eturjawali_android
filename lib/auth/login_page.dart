@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../api_service.dart'; // pastikan file ini ada di /lib
+import 'package:shared_preferences/shared_preferences.dart';
+import '../api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +13,18 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+
+  Future<void> saveSession(Map<String, dynamic> user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    await prefs.setInt('userId', user['userId']);
+    await prefs.setString('username', user['username']);
+    await prefs.setString('nama', user['nama'] ?? '');
+    await prefs.setString('kesatuan_nama', user['kesatuan_nama'] ?? '');
+    await prefs.setString('email', user['email'] ?? '');
+    await prefs.setString('no_mobile', user['no_mobile'] ?? '');
+    await prefs.setString('photo', user['photo'] ?? '');
+  }
 
   void showCustomSnackBar(String message, {bool isError = false}) {
     final color = isError ? Colors.red : Colors.green;
@@ -49,6 +62,8 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final user = await ApiService.login(username, password);
       print('Login success: $user');
+
+      await saveSession(user);
 
       showCustomSnackBar('Login berhasil');
       Future.delayed(const Duration(milliseconds: 500), () {
