@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class SprintDetailPage extends StatefulWidget {
   const SprintDetailPage({super.key});
@@ -20,13 +21,46 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     -6.244222176711041,
     106.8554326236161,
   ); // Ganti dengan lokasi kesatuan sebenarnya
-  final double radiusMeter = 100; // radius maksimum (misal 100 meter)
+  final double radiusMeter = 100;
 
+  bool isTimerRunning = false;
+  Duration elapsedTime = Duration.zero;
+  Timer? _timer;
   @override
   void initState() {
     super.initState();
     getLocation();
     currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
+  }
+
+  //Mulai Waktu
+  void startElapsedTimer() {
+    if (_timer != null && _timer!.isActive) return;
+
+    setState(() {
+      isTimerRunning = true;
+      elapsedTime = Duration.zero;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        elapsedTime += const Duration(seconds: 1);
+      });
+    });
+  }
+
+  //Stop Waktu
+  void stopElapsedTimer() {
+    _timer?.cancel();
+    setState(() {
+      isTimerRunning = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> getLocation() async {
@@ -112,6 +146,26 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   ),
                   const Spacer(),
                   Text(currentTime),
+                  if (isTimerRunning) ...[
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        elapsedTime.toString().split('.').first.padLeft(8, "0"),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -134,7 +188,14 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             right: 0,
             child: ElevatedButton(
               onPressed: () {
-                print("User Location saat tekan tombol: $userLocation");
+                if (isTimerRunning) {
+                  stopElapsedTimer();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Giat dihentikan')),
+                  );
+                  return;
+                }
+
                 if (userLocation == null) return;
 
                 final double jarak = distance.as(
@@ -149,62 +210,33 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                     builder: (context) {
                       TextEditingController alasanController =
                           TextEditingController();
-
                       return AlertDialog(
-                        title: const Text(
-                          'Konfirmasi',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        title: const Text('Konfirmasi'),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start, // biar sejajar kiri
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Anda berada di luar radius',
-                              style: TextStyle(fontSize: 14),
-                            ),
+                            const Text('Anda berada di luar radius'),
                             const SizedBox(height: 4),
-                            const Text(
-                              'Masukkan alasan untuk lanjut giat',
-                              style: TextStyle(fontSize: 14),
-                            ),
+                            const Text('Masukkan alasan untuk lanjut giat'),
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: alasanController,
                               decoration: const InputDecoration(
                                 hintText: 'Masukan Keterangan',
-                                border: UnderlineInputBorder(),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.blue),
-                                ),
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
                               ),
                             ),
                           ],
                         ),
                         actions: [
                           TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.orange,
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
+                            onPressed: () => Navigator.of(context).pop(),
                             child: const Text('Tidak'),
                           ),
                           TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.orange,
-                            ),
                             onPressed: () {
                               Navigator.of(context).pop();
+                              startElapsedTimer();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Giat dimulai (luar radius)'),
@@ -218,19 +250,21 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                     },
                   );
                 } else {
+                  startElapsedTimer();
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(const SnackBar(content: Text('Giat dimulai')));
                 }
               },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 minimumSize: const Size.fromHeight(60),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
-              child: const Text(
-                "MULAI",
-                style: TextStyle(fontSize: 18, color: Colors.white),
+              child: Text(
+                isTimerRunning ? "SELESAIKAN" : "MULAI",
+                style: const TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
           ),

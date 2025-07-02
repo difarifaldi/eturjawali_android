@@ -267,23 +267,17 @@ class ApiService {
       },
     );
 
-    print('Giat detail status: ${response.statusCode}');
-    print('Giat detail response: ${response.body}');
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      print('Body: $data');
 
       if (data['success'] != null && data['success'] is Map<String, dynamic>) {
         try {
           return Giat.fromJson(data['success']);
         } catch (e) {
-          print('Error saat parsing Giat: $e');
           return null;
         }
       }
     } else {
-      print('Status error: ${response.statusCode}');
       throw Exception('Gagal mengambil Giat: ${response.statusCode}');
     }
 
