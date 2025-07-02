@@ -7,6 +7,7 @@ import 'models/statistik.dart';
 import 'models/berita.dart';
 import 'models/sprint.dart';
 import 'models/giat.dart';
+import 'models/checkin_request.dart';
 
 class ApiService {
   static const String _baseUrl =
@@ -282,6 +283,64 @@ class ApiService {
     }
 
     return null;
+  }
+
+  //Start Giat
+  static Future<bool> sendCheckin(CheckinRequest request) async {
+    final token = generateJWT(request.idPengguna);
+    final url = Uri.parse('${_baseUrl}api/checkin');
+
+    print('[CHECKIN] URL: $url');
+    print('[CHECKIN] Request Body: ${jsonEncode(request.toJson())}');
+    print('[CHECKIN] Token: $token');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    print('[CHECKIN] Status Code: ${response.statusCode}');
+    print('[CHECKIN] Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] != null;
+    } else {
+      throw Exception('Gagal kirim checkin: ${response.statusCode}');
+    }
+  }
+
+  //Stop Giat
+  static Future<bool> sendCheckout(CheckinRequest request) async {
+    final token = generateJWT(request.idPengguna);
+    final url = Uri.parse('${_baseUrl}api/checkout');
+
+    print('[CHECKOUT] URL: $url');
+    print('[CHECKOUT] Request Body: ${jsonEncode(request.toJson())}');
+    print('[CHECKOUT] Token: $token');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    print('[CHECKOUT] Status Code: ${response.statusCode}');
+    print('[CHECKOUT] Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] != null;
+    } else {
+      throw Exception('Gagal kirim checkout: ${response.statusCode}');
+    }
   }
 
   //Update Profile

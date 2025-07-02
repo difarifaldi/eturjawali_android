@@ -4,9 +4,17 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import '../api_service.dart';
+import '../models/checkin_request.dart';
 
 class SprintDetailPage extends StatefulWidget {
-  const SprintDetailPage({super.key});
+  final int sprintId;
+  final int userId;
+  const SprintDetailPage({
+    super.key,
+    required this.sprintId,
+    required this.userId,
+  });
 
   @override
   State<SprintDetailPage> createState() => _SprintDetailPageState();
@@ -49,6 +57,58 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     });
   }
 
+  //Start Giat
+  Future<void> checkinData(String note) async {
+    if (userLocation == null) return;
+
+    final checkinData = CheckinRequest(
+      idPengguna: widget.userId,
+      idSprin: widget.sprintId,
+      latitude: userLocation!.latitude,
+      longitude: userLocation!.longitude,
+      pointLatitude: lokasiKesatuan.latitude,
+      pointLongitude: lokasiKesatuan.longitude,
+      note: note.isEmpty ? '-' : note,
+    );
+
+    try {
+      final success = await ApiService.sendCheckin(checkinData);
+      if (success) {
+        print('Berhasil check-in');
+      } else {
+        print('Gagal check-in');
+      }
+    } catch (e) {
+      print('Error saat check-in: $e');
+    }
+  }
+
+  //Stop Giat
+  Future<void> checkoutData(String note) async {
+    if (userLocation == null) return;
+
+    final checkoutData = CheckinRequest(
+      idPengguna: widget.userId,
+      idSprin: widget.sprintId,
+      latitude: userLocation!.latitude,
+      longitude: userLocation!.longitude,
+      pointLatitude: lokasiKesatuan.latitude,
+      pointLongitude: lokasiKesatuan.longitude,
+      note: note.isEmpty ? '-' : note,
+    );
+
+    try {
+      final success = await ApiService.sendCheckout(checkoutData);
+      if (success) {
+        print('✅ Berhasil checkout');
+      } else {
+        print('❌ Gagal checkout');
+      }
+    } catch (e) {
+      print('🚨 Error saat checkout: $e');
+    }
+  }
+
   //Stop Waktu
   void stopElapsedTimer() {
     _timer?.cancel();
@@ -63,6 +123,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     super.dispose();
   }
 
+  //Dapatkan Lokasi
   Future<void> getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -181,6 +242,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                 textAlign: TextAlign.center,
               ),
             ),
+
           // Tombol Mulai
           Positioned(
             bottom: 0,
@@ -190,9 +252,70 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
               onPressed: () {
                 if (isTimerRunning) {
                   stopElapsedTimer();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Giat dihentikan')),
+
+                  final double jarak = distance.as(
+                    LengthUnit.Meter,
+                    userLocation!,
+                    lokasiKesatuan,
                   );
+
+                  if (jarak > radiusMeter) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        final TextEditingController alasanController =
+                            TextEditingController();
+                        return AlertDialog(
+                          title: const Text('Konfirmasi'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Anda berada di luar radius'),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Masukkan alasan untuk menyelesaikan giat',
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: alasanController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Masukan Keterangan',
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Tidak'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                final alasan = alasanController.text;
+                                Navigator.of(context).pop();
+                                checkoutData(alasan); // <-- kirim alasan
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Giat dihentikan (luar radius)',
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: const Text('Ya'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    checkoutData(''); // dalam radius, tanpa alasan
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Giat dihentikan')),
+                    );
+                  }
+
                   return;
                 }
 
@@ -208,7 +331,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   showDialog(
                     context: context,
                     builder: (context) {
-                      TextEditingController alasanController =
+                      final TextEditingController alasanController =
                           TextEditingController();
                       return AlertDialog(
                         title: const Text('Konfirmasi'),
@@ -235,8 +358,10 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                           ),
                           TextButton(
                             onPressed: () {
+                              final alasan = alasanController.text;
                               Navigator.of(context).pop();
                               startElapsedTimer();
+                              checkinData(alasan);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Giat dimulai (luar radius)'),
@@ -251,6 +376,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   );
                 } else {
                   startElapsedTimer();
+                  checkinData("");
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(const SnackBar(content: Text('Giat dimulai')));

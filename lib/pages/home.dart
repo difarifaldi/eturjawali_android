@@ -206,7 +206,10 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const SprintDetailPage(),
+                                  builder: (_) => SprintDetailPage(
+                                    sprintId: item.id,
+                                    userId: widget.userId,
+                                  ),
                                 ),
                               );
                             },
