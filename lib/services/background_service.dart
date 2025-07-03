@@ -44,34 +44,11 @@ Future<void> initializeService() async {
   await service.startService();
 }
 
-@pragma('vm:entry-point')
-void onStart(ServiceInstance service) async {
-  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-  const notificationDetails = NotificationDetails(
-    android: AndroidNotificationDetails(
-      notificationChannelId,
-      'Tracking Location',
-      icon: 'ic_bg_service_small', // Tanpa .png
-      ongoing: true,
-    ),
-  );
-
-  // Update Sprint
-  service.on('updateSprintId').listen((event) async {
-    final prefs = await SharedPreferences.getInstance();
-    final newSprintId = event?['sprintId'];
-    if (newSprintId != null) {
-      await prefs.setInt('sprintId', newSprintId);
-      print("🔄 sprintId diperbarui di background service: $newSprintId");
-    } else {
-      await prefs.remove('sprintId');
-      print("🧹 sprintId dihapus dari SharedPreferences di background service");
-    }
-  });
-
-  // Time periodic
-  Timer.periodic(const Duration(seconds: 5), (timer) async {
+void startTrackingTimer(
+  ServiceInstance service,
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+) {
+  trackingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
     if (service is AndroidServiceInstance &&
         !(await service.isForegroundService())) {
       return;
@@ -80,12 +57,18 @@ void onStart(ServiceInstance service) async {
     try {
       Position position = await Geolocator.getCurrentPosition();
 
-      // Tampilkan notifikasi
       flutterLocalNotificationsPlugin.show(
         notificationId,
         'Tracking aktif',
         'Lokasi: ${position.latitude}, ${position.longitude}',
-        notificationDetails,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            notificationChannelId,
+            'Tracking Location',
+            icon: 'ic_bg_service_small',
+            ongoing: true,
+          ),
+        ),
       );
 
       final prefs = await SharedPreferences.getInstance();
@@ -94,6 +77,7 @@ void onStart(ServiceInstance service) async {
 
       print("user_id: $userId");
       print("sprint_id: $sprintId");
+
       if (userId != null && sprintId != null) {
         await ApiService.sendTrackingData(
           userId: userId,
@@ -106,4 +90,41 @@ void onStart(ServiceInstance service) async {
       print("[TRACKING ERROR] $e");
     }
   });
+}
+
+Timer? trackingTimer;
+@pragma('vm:entry-point')
+void onStart(ServiceInstance service) async {
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  // Listener untuk update sprintId
+  service.on('updateSprintId').listen((event) async {
+    final prefs = await SharedPreferences.getInstance();
+    final newSprintId = event?['sprintId'];
+    if (newSprintId != null) {
+      await prefs.setInt('sprintId', newSprintId);
+
+      if (trackingTimer == null || !trackingTimer!.isActive) {
+        print("▶️ Memulai tracking timer baru karena sprintId diperbarui");
+        startTrackingTimer(service, flutterLocalNotificationsPlugin);
+      }
+    } else {
+      await prefs.remove('sprintId');
+
+      //  Stop timer jika sprintId null
+      trackingTimer?.cancel();
+      trackingTimer = null;
+      print("⛔ Timer tracking dihentikan karena sprintId = null");
+    }
+  });
+
+  // Lanjutkan tracking jika sprintId masih ada
+  final prefs = await SharedPreferences.getInstance();
+  final existingSprintId = prefs.getInt('sprintId');
+  if (existingSprintId != null) {
+    print("📦 Melanjutkan tracking karena sprintId masih ada");
+    if (trackingTimer == null || !trackingTimer!.isActive) {
+      startTrackingTimer(service, flutterLocalNotificationsPlugin);
+    }
+  }
 }
