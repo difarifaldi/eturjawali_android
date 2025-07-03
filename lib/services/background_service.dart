@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
+
+import '../api_service.dart';
 
 const notificationChannelId = 'location_tracking';
 const notificationId = 888;
@@ -95,28 +95,12 @@ void onStart(ServiceInstance service) async {
       print("user_id: $userId");
       print("sprint_id: $sprintId");
       if (userId != null && sprintId != null) {
-        final body = {
-          "id_pengguna": userId,
-          "id_sprin": sprintId.toString(),
-          "latitude": position.latitude,
-          "longitude": position.longitude,
-          "lambung": "",
-          "T": 0,
-          "J": 0,
-          "W": 0,
-          "L": 0,
-          "partner": [],
-        };
-
-        final response = await http.post(
-          Uri.parse(
-            'https://eturjawali.korlantas.polri.go.id/api/v2/api/track',
-          ),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
+        await ApiService.sendTrackingData(
+          userId: userId,
+          sprintId: sprintId,
+          latitude: position.latitude,
+          longitude: position.longitude,
         );
-
-        print("[TRACKING] Response: ${response.statusCode}");
       }
     } catch (e) {
       print("[TRACKING ERROR] $e");

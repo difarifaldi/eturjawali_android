@@ -290,10 +290,6 @@ class ApiService {
     final token = generateJWT(request.idPengguna);
     final url = Uri.parse('${_baseUrl}api/checkin');
 
-    print('[CHECKIN] URL: $url');
-    print('[CHECKIN] Request Body: ${jsonEncode(request.toJson())}');
-    print('[CHECKIN] Token: $token');
-
     final response = await http.post(
       url,
       headers: {
@@ -302,9 +298,6 @@ class ApiService {
       },
       body: jsonEncode(request.toJson()),
     );
-
-    print('[CHECKIN] Status Code: ${response.statusCode}');
-    print('[CHECKIN] Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -319,10 +312,6 @@ class ApiService {
     final token = generateJWT(request.idPengguna);
     final url = Uri.parse('${_baseUrl}api/checkout');
 
-    print('[CHECKOUT] URL: $url');
-    print('[CHECKOUT] Request Body: ${jsonEncode(request.toJson())}');
-    print('[CHECKOUT] Token: $token');
-
     final response = await http.post(
       url,
       headers: {
@@ -331,9 +320,6 @@ class ApiService {
       },
       body: jsonEncode(request.toJson()),
     );
-
-    print('[CHECKOUT] Status Code: ${response.statusCode}');
-    print('[CHECKOUT] Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -343,14 +329,28 @@ class ApiService {
     }
   }
 
-  //Start Giat
-  static Future<bool> sendTracking(int userId) async {
+  //Tracking
+  static Future<bool> sendTrackingData({
+    required int userId,
+    required int sprintId,
+    required double latitude,
+    required double longitude,
+  }) async {
     final token = generateJWT(userId);
-    final url = Uri.parse('${_baseUrl}api/checkin');
+    final url = Uri.parse('${_baseUrl}api/track');
 
-    print('[CHECKIN] URL: $url');
-    print('[CHECKIN] Request Body: ${jsonEncode(request.toJson())}');
-    print('[CHECKIN] Token: $token');
+    final body = {
+      "id_pengguna": userId,
+      "id_sprin": sprintId.toString(),
+      "latitude": latitude,
+      "longitude": longitude,
+      "lambung": "",
+      "T": 0,
+      "J": 0,
+      "W": 0,
+      "L": 0,
+      "partner": [],
+    };
 
     final response = await http.post(
       url,
@@ -358,17 +358,17 @@ class ApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode(request.toJson()),
+      body: jsonEncode(body),
     );
 
-    print('[CHECKIN] Status Code: ${response.statusCode}');
-    print('[CHECKIN] Response Body: ${response.body}');
+    print("[TRACKING] Response: ${response.statusCode}");
+    print('[TRACKING] Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['success'] != null;
     } else {
-      throw Exception('Gagal kirim checkin: ${response.statusCode}');
+      throw Exception('Gagal kirim tracking: ${response.statusCode}');
     }
   }
 
