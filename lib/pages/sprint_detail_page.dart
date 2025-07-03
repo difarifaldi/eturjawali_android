@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'dart:async';
 import '../api_service.dart';
 import '../models/checkin_request.dart';
@@ -39,15 +41,26 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     super.initState();
     getLocation();
     currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
+    restoreTimerIfNeeded();
   }
 
   //Mulai Waktu
-  void startElapsedTimer() {
+  void startElapsedTimer({bool fromRestore = false}) async {
     if (_timer != null && _timer!.isActive) return;
+
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!fromRestore) {
+      final now = DateTime.now();
+      await prefs.setBool('isTimerRunning', true);
+      await prefs.setString('startTime', now.toIso8601String());
+      setState(() {
+        elapsedTime = Duration.zero;
+      });
+    }
 
     setState(() {
       isTimerRunning = true;
-      elapsedTime = Duration.zero;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -99,6 +112,14 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
 
     try {
       final success = await ApiService.sendCheckout(checkoutData);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('sprintId');
+      await prefs.remove('isTimerRunning');
+      await prefs.remove('startTime');
+
+      // Update background service
+      FlutterBackgroundService().invoke('updateSprintId', {'sprintId': null});
+
       if (success) {
         print('✅ Berhasil checkout');
       } else {
@@ -110,11 +131,39 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   }
 
   //Stop Waktu
-  void stopElapsedTimer() {
+  void stopElapsedTimer() async {
     _timer?.cancel();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('isTimerRunning');
+    await prefs.remove('startTime');
+
     setState(() {
       isTimerRunning = false;
+      elapsedTime = Duration.zero;
     });
+  }
+
+  Future<void> restoreTimerIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    final running = prefs.getBool('isTimerRunning') ?? false;
+
+    if (running) {
+      final startStr = prefs.getString('startTime');
+      if (startStr != null) {
+        final start = DateTime.tryParse(startStr);
+        if (start != null) {
+          final now = DateTime.now();
+          final duration = now.difference(start);
+
+          setState(() {
+            isTimerRunning = true;
+            elapsedTime = duration;
+          });
+
+          startElapsedTimer(fromRestore: true);
+        }
+      }
+    }
   }
 
   @override
@@ -145,6 +194,16 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
       print("User Location: $userLocation");
     });
     print("Lokasi diperoleh: $userLocation");
+  }
+
+  Future<void> saveSprintId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('sprintId', widget.sprintId);
+    print("📍 sprintId ${widget.sprintId} tersimpan ke SharedPreferences");
+
+    FlutterBackgroundService().invoke('updateSprintId', {
+      'sprintId': widget.sprintId,
+    });
   }
 
   //Dialog Alasan
@@ -347,6 +406,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                         'Anda berada di luar radius.\nMasukkan alasan untuk lanjut giat:',
                     onConfirm: (alasan) {
                       startElapsedTimer();
+                      saveSprintId();
                       checkinData(alasan);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -357,6 +417,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   );
                 } else {
                   startElapsedTimer();
+                  saveSprintId();
                   checkinData("");
                   ScaffoldMessenger.of(
                     context,

@@ -343,6 +343,35 @@ class ApiService {
     }
   }
 
+  //Start Giat
+  static Future<bool> sendTracking(int userId) async {
+    final token = generateJWT(userId);
+    final url = Uri.parse('${_baseUrl}api/checkin');
+
+    print('[CHECKIN] URL: $url');
+    print('[CHECKIN] Request Body: ${jsonEncode(request.toJson())}');
+    print('[CHECKIN] Token: $token');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    print('[CHECKIN] Status Code: ${response.statusCode}');
+    print('[CHECKIN] Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] != null;
+    } else {
+      throw Exception('Gagal kirim checkin: ${response.statusCode}');
+    }
+  }
+
   //Update Profile
   static Future<bool> updateProfile({
     required int userId,

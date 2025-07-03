@@ -57,6 +57,20 @@ void onStart(ServiceInstance service) async {
     ),
   );
 
+  // Update Sprint
+  service.on('updateSprintId').listen((event) async {
+    final prefs = await SharedPreferences.getInstance();
+    final newSprintId = event?['sprintId'];
+    if (newSprintId != null) {
+      await prefs.setInt('sprintId', newSprintId);
+      print("🔄 sprintId diperbarui di background service: $newSprintId");
+    } else {
+      await prefs.remove('sprintId');
+      print("🧹 sprintId dihapus dari SharedPreferences di background service");
+    }
+  });
+
+  // Time periodic
   Timer.periodic(const Duration(seconds: 5), (timer) async {
     if (service is AndroidServiceInstance &&
         !(await service.isForegroundService())) {
@@ -75,9 +89,11 @@ void onStart(ServiceInstance service) async {
       );
 
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt('user_id');
-      final sprintId = prefs.getInt('sprint_id');
+      final userId = prefs.getInt('userId');
+      final sprintId = prefs.getInt('sprintId');
 
+      print("user_id: $userId");
+      print("sprint_id: $sprintId");
       if (userId != null && sprintId != null) {
         final body = {
           "id_pengguna": userId,
