@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'auth/login_page.dart';
 import 'pages/home.dart';
-import 'pages/splash_page.dart'; // tambahkan
+import 'pages/splash_page.dart';
+import 'services/background_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeService(); // Aktifkan background service
   runApp(const MyApp());
 }
 
