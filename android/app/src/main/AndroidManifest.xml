@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
 
     <application
         android:label="eturjawali_android"
@@ -34,11 +37,24 @@
         </activity>
 
         
+        <receiver
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
+            android:name="id.flutter.flutter_background_service.BackgroundReceiver"
+            tools:replace="android:exported" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.REBOOT" />
+            </intent-filter>
+        </receiver>
+        
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:exported="true"
+            android:exported="false"
             android:foregroundServiceType="location"
-            tools:replace="android:exported,android:foregroundServiceType"/>
+            android:stopWithTask="false"
+            tools:replace="android:exported,android:foregroundServiceType,android:stopWithTask"/>
 
 
         <meta-data

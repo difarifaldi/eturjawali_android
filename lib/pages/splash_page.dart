@@ -20,7 +20,9 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> initApp() async {
+    await requestLocationPermission();
     await _handleLocationPermission(); // ⬅️ Minta izin lokasi
+    await openBatteryOptimizationSettings();
     await initializeService();
     await Future.delayed(
       const Duration(seconds: 1),

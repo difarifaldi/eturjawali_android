@@ -3,12 +3,38 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 import '../api_service.dart';
 
 const notificationChannelId = 'location_tracking';
 const notificationId = 888;
 
+Future<void> openBatteryOptimizationSettings() async {
+  final intent = AndroidIntent(
+    action: 'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+  );
+  await intent.launch();
+}
+
+Future<void> requestLocationPermission() async {
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied ||
+      permission == LocationPermission.deniedForever) {
+    permission = await Geolocator.requestPermission();
+  }
+
+  if (permission == LocationPermission.whileInUse) {
+    print(
+      "[PERMISSION] Lokasi hanya diizinkan saat app digunakan. Perlu background access.",
+    );
+  } else if (permission == LocationPermission.always) {
+    print("[PERMISSION] Lokasi diizinkan di background (👍)");
+  }
+}
+
+@pragma('vm:entry-point')
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
 
@@ -32,6 +58,7 @@ Future<void> initializeService() async {
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
       autoStart: true,
+      autoStartOnBoot: true,
       isForegroundMode: true,
       notificationChannelId: notificationChannelId,
       initialNotificationTitle: 'Tracking berjalan',
@@ -44,19 +71,43 @@ Future<void> initializeService() async {
   await service.startService();
 }
 
-void startTrackingTimer(
+Future<void> startTrackingLoop(
   ServiceInstance service,
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
-) {
-  trackingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-    if (service is AndroidServiceInstance &&
-        !(await service.isForegroundService())) {
-      return;
+) async {
+  print("[DEBUG] 🚀 Loop DIMULAI");
+
+  while (true) {
+    print("[LOOP] Loop masih berjalan");
+    if (service is AndroidServiceInstance) {
+      final isForeground = await service.isForegroundService();
+      if (!isForeground) {
+        await service.setAsForegroundService();
+      }
     }
 
     try {
-      Position position = await Geolocator.getCurrentPosition();
+      Position? position;
+      try {
+        print("[DEBUG] 🔍 Meminta lokasi realtime...");
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 0,
+          ),
+        );
+      } catch (e) {
+        print("[GPS ERROR] Gagal ambil lokasi realtime: $e");
+        position = await Geolocator.getLastKnownPosition();
+      }
 
+      if (position == null) {
+        print("[TRACKING] Lokasi tidak tersedia, skip...");
+        await Future.delayed(Duration(seconds: 5));
+        continue;
+      }
+
+      // Tampilkan notifikasi
       flutterLocalNotificationsPlugin.show(
         notificationId,
         'Tracking aktif',
@@ -75,56 +126,58 @@ void startTrackingTimer(
       final userId = prefs.getInt('userId');
       final sprintId = prefs.getInt('sprintId');
 
-      print("user_id: $userId");
-      print("sprint_id: $sprintId");
+      print("[TRACKING] userId: $userId, sprintId: $sprintId");
 
       if (userId != null && sprintId != null) {
-        await ApiService.sendTrackingData(
+        print("[TRACKING] Kirim data ke server...");
+        final response = await ApiService.sendTrackingData(
           userId: userId,
           sprintId: sprintId,
           latitude: position.latitude,
           longitude: position.longitude,
         );
+        print("[TRACKING] Response setelah kirim: $response");
+      } else {
+        print("[TRACKING] userId atau sprintId NULL");
       }
     } catch (e) {
       print("[TRACKING ERROR] $e");
     }
-  });
+    print("[DEBUG] 💤 Tidur 5 detik...");
+    await Future.delayed(const Duration(seconds: 5));
+    print("[DEBUG] 💤 Bangun dan lanjut loop...");
+  }
 }
 
-Timer? trackingTimer;
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
-  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  WakelockPlus.enable();
 
-  // Listener untuk update sprintId
+  if (service is AndroidServiceInstance) {
+    service.setAsForegroundService();
+  }
+
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  final prefs = await SharedPreferences.getInstance();
+
+  // Dengarkan update sprintId
   service.on('updateSprintId').listen((event) async {
-    final prefs = await SharedPreferences.getInstance();
     final newSprintId = event?['sprintId'];
     if (newSprintId != null) {
       await prefs.setInt('sprintId', newSprintId);
-
-      if (trackingTimer == null || !trackingTimer!.isActive) {
-        print("▶️ Memulai tracking timer baru karena sprintId diperbarui");
-        startTrackingTimer(service, flutterLocalNotificationsPlugin);
-      }
+      print("📥 SprintId diperbarui: $newSprintId");
     } else {
       await prefs.remove('sprintId');
-
-      //  Stop timer jika sprintId null
-      trackingTimer?.cancel();
-      trackingTimer = null;
-      print("⛔ Timer tracking dihentikan karena sprintId = null");
+      print("❌ SprintId dihapus");
     }
   });
 
-  // Lanjutkan tracking jika sprintId masih ada
-  final prefs = await SharedPreferences.getInstance();
-  final existingSprintId = prefs.getInt('sprintId');
-  if (existingSprintId != null) {
-    print("📦 Melanjutkan tracking karena sprintId masih ada");
-    if (trackingTimer == null || !trackingTimer!.isActive) {
-      startTrackingTimer(service, flutterLocalNotificationsPlugin);
-    }
+  print("[SERVICE] Mulai tracking loop...");
+  unawaited(startTrackingLoop(service, flutterLocalNotificationsPlugin));
+
+  // Loop pasif hanya untuk debugging
+  while (true) {
+    await Future.delayed(const Duration(minutes: 5));
+    print("[SERVICE] Background loop still alive...");
   }
 }

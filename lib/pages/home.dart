@@ -45,11 +45,20 @@ class _HomePageState extends State<HomePage> {
   List<Giat> giatList = [];
   Statistik? statistik;
   bool isLoading = true;
+  int? activeSprintId;
 
   @override
   void initState() {
     super.initState();
     loadData();
+    loadActiveSprintId();
+  }
+
+  Future<void> loadActiveSprintId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      activeSprintId = prefs.getInt('sprintId');
+    });
   }
 
   Future<void> handleLogout(BuildContext context) async {
@@ -200,10 +209,15 @@ class _HomePageState extends State<HomePage> {
                           ),
                         )
                       else
-                        ...sprintList.map(
-                          (item) => InkWell(
-                            onTap: () {
-                              Navigator.push(
+                        ...sprintList.map((item) {
+                          final isActive = item.id == activeSprintId;
+                          final cardColor = isActive
+                              ? Colors.green.shade100
+                              : Colors.yellow.shade100;
+
+                          return InkWell(
+                            onTap: () async {
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => SprintDetailPage(
@@ -212,12 +226,15 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                               );
+                              // Setelah kembali, refresh sprintId yang aktif
+                              await loadActiveSprintId();
                             },
                             child: Card(
                               elevation: 4,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
+                              color: cardColor, // Warna card berdasarkan status
                               child: Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(16.0),
@@ -244,8 +261,8 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        }),
 
                       const SizedBox(height: 32),
 
