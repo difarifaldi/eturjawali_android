@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+
 import 'auth/login_page.dart';
 import 'pages/home.dart';
 import 'pages/splash_page.dart';
+
+import '../services/background_service.dart';
 
 Future<void> handleLocationPermission() async {
   bool serviceEnabled;
@@ -33,8 +37,12 @@ Future<void> handleLocationPermission() async {
   print('Izin lokasi diberikan.');
 }
 
-void main() {
+void main() async {
+  print("🔥 MAIN isolate jalan");
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeService();
+  WakelockPlus.enable();
+
   runApp(const MyApp());
 }
 
