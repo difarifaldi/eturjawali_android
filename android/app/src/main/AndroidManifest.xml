@@ -47,6 +47,9 @@
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
             android:foregroundServiceType="location"
+            android:enabled="true"
+            android:exported="false"
+            tools:replace="android:exported"
         />
 
         <receiver
@@ -71,29 +74,18 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
             </intent-filter>
         </receiver>
-        
-         <receiver
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
+
+        <receiver
             android:name="id.flutter.flutter_background_service.BackgroundReceiver"
-            tools:replace="android:exported" >
+            android:enabled="true"
+            android:exported="false"
+            tools:replace="android:exported">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.REBOOT" />
+                <action android:name="id.flutter.background_service.ACTION" />
             </intent-filter>
         </receiver>
 
-        <receiver
-            android:name=".BootReceiver"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-        
+
     </application>
     <queries>
         <intent>

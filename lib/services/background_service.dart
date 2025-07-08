@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:flutter/widgets.dart';
 
 import '../api_service.dart';
 
@@ -26,11 +27,25 @@ Future<void> openAutostartSettings() async {
   await intent.launch();
 }
 
-Future<void> requestLocationPermission() async {
+Future<void> handleLocationPermission() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    print('Layanan lokasi tidak aktif.');
+    return;
+  }
+
   LocationPermission permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied ||
-      permission == LocationPermission.deniedForever) {
+  if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      print('Izin lokasi ditolak.');
+      return;
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    print('Izin lokasi ditolak permanen.');
+    return;
   }
 
   if (permission == LocationPermission.whileInUse) {
@@ -40,6 +55,8 @@ Future<void> requestLocationPermission() async {
   } else if (permission == LocationPermission.always) {
     print("[PERMISSION] Lokasi diizinkan di background (👍)");
   }
+
+  print('✅ Izin lokasi diberikan');
 }
 
 @pragma('vm:entry-point')
@@ -87,6 +104,12 @@ Future<void> startTrackingLoop(
 
   final prefs = await SharedPreferences.getInstance();
 
+  final allKeys = prefs.getKeys();
+  print("[DEBUG] Semua SharedPreferences key: $allKeys");
+  print(
+    "[DEBUG] userId: ${prefs.getInt('userId')}, sprintId: ${prefs.getInt('sprintId')}",
+  );
+
   while (true) {
     try {
       print("[LOOP] Loop masih berjalan");
@@ -101,6 +124,13 @@ Future<void> startTrackingLoop(
       Position? position;
       try {
         print("[DEBUG] 🔍 Meminta lokasi realtime...");
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission != LocationPermission.always) {
+          print("[PERMISSION] Izin background hilang/tidak cukup, skip...");
+          await Future.delayed(const Duration(seconds: 5));
+          continue;
+        }
+
         position = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
@@ -168,6 +198,7 @@ Future<void> startTrackingLoop(
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   WakelockPlus.enable();
+  WidgetsFlutterBinding.ensureInitialized();
 
   if (service is AndroidServiceInstance) {
     service.setAsForegroundService();
@@ -194,5 +225,13 @@ void onStart(ServiceInstance service) async {
   // Debug loop untuk menunjukkan service tetap hidup
   Timer.periodic(const Duration(minutes: 5), (_) {
     print("[SERVICE] Background loop still alive...");
+  });
+
+  Timer.periodic(Duration(minutes: 1), (_) async {
+    final isHeld = await WakelockPlus.enabled;
+    if (!isHeld) {
+      print('[WAKELOCK] Tidak aktif, akan diaktifkan ulang');
+      WakelockPlus.enable();
+    }
   });
 }

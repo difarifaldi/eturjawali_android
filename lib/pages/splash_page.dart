@@ -20,44 +20,23 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> initApp() async {
-    await requestLocationPermission();
-    await _handleLocationPermission(); // ⬅️ Minta izin lokasi
-    await openAutostartSettings();
-    await openBatteryOptimizationSettings();
+    await handleLocationPermission(); // ⬅️ Minta izin lokasi
+    try {
+      await openAutostartSettings();
+    } catch (e) {
+      print('[WARNING] Gagal buka autostart: $e');
+    }
+
+    try {
+      await openBatteryOptimizationSettings();
+    } catch (e) {
+      print('[WARNING] Gagal buka battery optimization: $e');
+    }
+
     await Future.delayed(
       const Duration(seconds: 1),
     ); // Opsional: beri jeda animasi
     await checkLoginStatus(); // ⬅️ Setelah dapat izin, lanjut cek login
-  }
-
-  Future<void> _handleLocationPermission() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      await _showAlertDialog(
-        'Layanan lokasi tidak aktif. Aktifkan terlebih dahulu.',
-      );
-      return;
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        await _showAlertDialog(
-          'Izin lokasi ditolak. Aplikasi tidak dapat berjalan tanpa izin ini.',
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      await _showAlertDialog(
-        'Izin lokasi ditolak permanen. Harap izinkan dari pengaturan.',
-      );
-      return;
-    }
-
-    print('✅ Izin lokasi diberikan');
   }
 
   Future<void> checkLoginStatus() async {
