@@ -43,6 +43,11 @@ void main() async {
   await initializeService();
   WakelockPlus.enable();
 
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('[FLUTTER ERROR] ${details.exception}');
+    print('[STACK] ${details.stack}');
+  };
+
   runApp(const MyApp());
 }
 

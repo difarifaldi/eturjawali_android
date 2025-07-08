@@ -201,8 +201,12 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     await prefs.setInt('sprintId', widget.sprintId);
     print("📍 sprintId ${widget.sprintId} tersimpan ke SharedPreferences");
 
-    FlutterBackgroundService().invoke('updateSprintId', {
-      'sprintId': widget.sprintId,
+    // 🔁 Tambah delay agar service isolate siap
+    Future.delayed(Duration(seconds: 2), () {
+      FlutterBackgroundService().invoke('updateSprintId', {
+        'sprintId': widget.sprintId,
+      });
+      print("📤 Kirim sprintId ke background service");
     });
   }
 
