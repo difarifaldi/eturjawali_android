@@ -112,13 +112,14 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
 
     try {
       final success = await ApiService.sendCheckout(checkoutData);
+
+      // Update background service
+      FlutterBackgroundService().invoke('updateSprintId', {'sprintId': null});
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('sprintId');
       await prefs.remove('isTimerRunning');
       await prefs.remove('startTime');
-
-      // Update background service
-      FlutterBackgroundService().invoke('updateSprintId', {'sprintId': null});
 
       if (success) {
         print('✅ Berhasil checkout');
