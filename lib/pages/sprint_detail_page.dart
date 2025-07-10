@@ -279,10 +279,10 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
               options: MapOptions(center: userLocation, zoom: 16),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c'],
+                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  userAgentPackageName: 'com.example.eturjawali_android',
                 ),
+
                 MarkerLayer(
                   markers: [
                     Marker(
