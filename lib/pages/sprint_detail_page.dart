@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:ui';
 import '../api_service.dart';
 import '../models/checkin_request.dart';
+import 'laporan_page.dart';
 
 class SprintDetailPage extends StatefulWidget {
   final int sprintId;
@@ -490,10 +491,27 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         Expanded(
           child: ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Menu laporan diklik')),
-              );
+              final prefs = SharedPreferences.getInstance();
+              prefs.then((sp) {
+                final startStr = sp.getString('startTime');
+                if (startStr != null) {
+                  final startTime = DateTime.tryParse(startStr);
+                  if (startTime != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LaporanPage(
+                          startTime: startTime,
+                          isTimerRunning: isTimerRunning,
+                          currentTime: currentTime
+                        ),
+                      ),
+                    );
+                  }
+                }
+              });
             },
+
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
               minimumSize: const Size.fromHeight(50),
