@@ -21,6 +21,8 @@ class _LaporanPageState extends State<LaporanPage> {
   Duration _elapsedTime = Duration.zero;
   late Timer _timer;
 
+  int _currentStep = 0;
+
   String? _selectedJenisLaporan;
   String? _selectedLokasi;
   String? _selectedJenisGatur;
@@ -29,7 +31,14 @@ class _LaporanPageState extends State<LaporanPage> {
   TextEditingController _detailController = TextEditingController();
   TextEditingController _lambungController = TextEditingController();
 
-  final List<String> _lokasi = [
+  final List<String> _jenisLaporan = [
+    'PENGATURAN',
+    'PENJAGAAN',
+    'PENGAWALAN',
+    'PATROLI',
+  ];
+
+  final List<String> _lokasiPengaturan = [
     'PERSIMPANGAN',
     'PUTARAN',
     'BELOK ARAH',
@@ -48,13 +57,56 @@ class _LaporanPageState extends State<LaporanPage> {
     'LAIN LAIN',
   ];
 
-  final List<String> _kegiatan = [
+  final List<String> _kegiatanPengaturan = [
     'BERI JUK/ARAHAN',
     'BERI TEGURAN',
     'MENILANG',
     'MENYEBRANGKAN',
     'IJIN',
     'BERI JALAN',
+    'PENANGANAN TP TKP',
+    'GUANTIBMAS',
+    'LAIN LAIN',
+  ];
+
+  final List<String> _lokasiPenjagaan = [
+    'MAKO KANTOR POS TETAP',
+    'POS SEMENTARA - REST AREA',
+    'POS SEMENTARA - POS OPERASI',
+    'POS SEMENTARA - POS PANTAU',
+    'INDUK PJR DIPERKUAT',
+  ];
+
+  final List<String> _kegiatanPenjagaan = [
+    'BERI JUK/HIMBAUAN',
+    'BERI TEGURAN',
+    'MENILANG',
+    'MENYEBRANGKAN',
+    'ARUS BALIK',
+    'LAIN LAIN',
+  ];
+
+  final List<String> _kegiatanPengawalan = [
+    'PIMPINAN LEMBAGA RI',
+    'PIMPINAN LEMBAGA NEGARA ASING',
+    'KONVOI ROMBONGAN',
+    'JENAZAH',
+    'IRING IRINGAN',
+    'PERTIMBANGAN POLRI',
+    'LOGISTIK PEMILU',
+    'PASLON PEMILU',
+    'LAIN LAIN',
+  ];
+
+  final List<String> _jenisKendaraanPatroli = ['RODA DUA', 'RODA EMPAT'];
+
+  final List<String> _sasaranPatroli = ['DALAM KOTA', 'LUAR KOTA', 'JALAN TOL'];
+
+  final List<String> _kegiatanPatroli = [
+    'DATANGI LOKASI RWN MACET',
+    'DATANGI LOKASI RWN GAR',
+    'DATANGI LOKASI RWN LAKA',
+    'DATANGI LOKASI RWN TP DI JLN',
     'PENANGANAN TP TKP',
     'GUANTIBMAS',
     'LAIN LAIN',
@@ -72,26 +124,17 @@ class _LaporanPageState extends State<LaporanPage> {
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Dari Kamera'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  // Tambahkan aksi kamera
-                },
+                onTap: () => Navigator.of(context).pop(),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_camera),
                 title: const Text('Foto dari Kamera'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  // Tambahkan aksi foto kamera
-                },
+                onTap: () => Navigator.of(context).pop(),
               ),
               ListTile(
                 leading: const Icon(Icons.video_library),
                 title: const Text('Video dari Galeri'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  // Tambahkan aksi ambil video
-                },
+                onTap: () => Navigator.of(context).pop(),
               ),
               ListTile(
                 leading: const Icon(Icons.close),
@@ -143,17 +186,348 @@ class _LaporanPageState extends State<LaporanPage> {
           .toList(),
       onChanged: onChanged,
       decoration: const InputDecoration(
-        border: InputBorder.none, // Hapus border
+        border: InputBorder.none,
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       ),
     );
+  }
+
+  List<Widget> buildFormSteps() {
+    if (_selectedJenisLaporan == 'PENGATURAN') {
+      return [
+        if (_currentStep >= 1) ...[
+          const Text("1. Di mana lokasi pengaturan?"),
+          buildDropdown(
+            selectedValue: _selectedLokasi,
+            options: _lokasiPengaturan,
+            onChanged: (val) => setState(() {
+              _selectedLokasi = val;
+              _currentStep = 2;
+            }),
+            hint: "Pilih lokasi",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 2) ...[
+          const Text("2. Jenis pengaturan apa yang dilakukan?"),
+          buildDropdown(
+            selectedValue: _selectedJenisGatur,
+            options: _jenisGatur,
+            onChanged: (val) => setState(() {
+              _selectedJenisGatur = val;
+              _currentStep = 3;
+            }),
+            hint: "Pilih jenis gatur",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 3) ...[
+          const Text("3. Kegiatan apa yang dilakukan?"),
+          buildDropdown(
+            selectedValue: _selectedKegiatan,
+            options: _kegiatanPengaturan,
+            onChanged: (val) => setState(() {
+              _selectedKegiatan = val;
+              _currentStep = 4;
+            }),
+            hint: "Pilih kegiatan",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 4) ...[
+          const Text("4. Jelaskan detail kegiatan:"),
+          TextField(
+            controller: _detailController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 5);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan detail laporan",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 5) ...[
+          const Text("5. Masukkan nomor lambung kendaraan:"),
+          TextField(
+            controller: _lambungController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 6);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan nomor lambung",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 6) ...[
+          const Text("6. Ambil media pendukung:"),
+          const SizedBox(height: 12),
+          Center(
+            child: InkWell(
+              onTap: () => _showMediaDialog(context),
+              child: const CircleAvatar(
+                backgroundColor: Colors.blue,
+                radius: 30,
+                child: Icon(Icons.camera_alt, color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ];
+    } else if (_selectedJenisLaporan == 'PENJAGAAN') {
+      return [
+        if (_currentStep >= 1) ...[
+          const Text("1. Di mana lokasi penjagaan?"),
+          buildDropdown(
+            selectedValue: _selectedLokasi,
+            options: _lokasiPenjagaan,
+            onChanged: (val) => setState(() {
+              _selectedLokasi = val;
+              _currentStep = 2;
+            }),
+            hint: "Pilih lokasi",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 2) ...[
+          const Text("2. Kegiatan apa yang dilakukan?"),
+          buildDropdown(
+            selectedValue: _selectedKegiatan,
+            options: _kegiatanPenjagaan,
+            onChanged: (val) => setState(() {
+              _selectedKegiatan = val;
+              _currentStep = 3;
+            }),
+            hint: "Pilih kegiatan",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 3) ...[
+          const Text("3. Jelaskan detail kegiatan:"),
+          TextField(
+            controller: _detailController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 4);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan detail laporan",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 4) ...[
+          const Text("4. Masukkan nomor lambung kendaraan:"),
+          TextField(
+            controller: _lambungController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 5);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan nomor lambung",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 5) ...[
+          const Text("5. Ambil media pendukung:"),
+          const SizedBox(height: 12),
+          Center(
+            child: InkWell(
+              onTap: () => _showMediaDialog(context),
+              child: const CircleAvatar(
+                backgroundColor: Colors.blue,
+                radius: 30,
+                child: Icon(Icons.camera_alt, color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ];
+    } else if (_selectedJenisLaporan == 'PENGAWALAN') {
+      return [
+        if (_currentStep >= 1) ...[
+          const Text("1. Kegiatan pengawalan apa yang dilakukan?"),
+          buildDropdown(
+            selectedValue: _selectedKegiatan,
+            options: _kegiatanPengawalan,
+            onChanged: (val) => setState(() {
+              _selectedKegiatan = val;
+              _currentStep = 2;
+            }),
+            hint: "Pilih kegiatan",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 2) ...[
+          const Text("2. Jelaskan detail kegiatan:"),
+          TextField(
+            controller: _detailController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 3);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan detail laporan",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 3) ...[
+          const Text("3. Masukkan nomor lambung kendaraan:"),
+          TextField(
+            controller: _lambungController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 4);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan nomor lambung",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 4) ...[
+          const Text("4. Daftar rute pengawalan:"),
+          TextField(
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 5);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan rute pengawalan",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 5) ...[
+          const Text("5. Ambil media pendukung:"),
+          const SizedBox(height: 12),
+          Center(
+            child: InkWell(
+              onTap: () => _showMediaDialog(context),
+              child: const CircleAvatar(
+                backgroundColor: Colors.blue,
+                radius: 30,
+                child: Icon(Icons.camera_alt, color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ];
+    } else if (_selectedJenisLaporan == 'PATROLI') {
+      return [
+        if (_currentStep >= 1) ...[
+          const Text("1. Jenis kendaraan patroli:"),
+          buildDropdown(
+            selectedValue: _selectedJenisGatur,
+            options: _jenisKendaraanPatroli,
+            onChanged: (val) => setState(() {
+              _selectedJenisGatur = val;
+              _currentStep = 2;
+            }),
+            hint: "Pilih jenis kendaraan",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 2) ...[
+          const Text("2. Sasaran patroli:"),
+          buildDropdown(
+            selectedValue: _selectedLokasi,
+            options: _sasaranPatroli,
+            onChanged: (val) => setState(() {
+              _selectedLokasi = val;
+              _currentStep = 3;
+            }),
+            hint: "Pilih sasaran",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 3) ...[
+          const Text("3. Kegiatan patroli:"),
+          buildDropdown(
+            selectedValue: _selectedKegiatan,
+            options: _kegiatanPatroli,
+            onChanged: (val) => setState(() {
+              _selectedKegiatan = val;
+              _currentStep = 4;
+            }),
+            hint: "Pilih kegiatan",
+          ),
+          const Divider(thickness: 1),
+          const SizedBox(height: 16),
+        ],
+        if (_currentStep >= 4) ...[
+          const Text("4. Jelaskan detail kegiatan:"),
+          TextField(
+            controller: _detailController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 5);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan detail laporan",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 5) ...[
+          const Text("5. Masukkan nomor lambung kendaraan:"),
+          TextField(
+            controller: _lambungController,
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 6);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan nomor lambung",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 6) ...[
+          const Text("6. Daftar rute patroli:"),
+          TextField(
+            onChanged: (val) {
+              if (val.isNotEmpty) setState(() => _currentStep = 7);
+            },
+            decoration: const InputDecoration(
+              hintText: "Masukkan rute patroli",
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_currentStep >= 7) ...[
+          const Text("7. Ambil media pendukung:"),
+          const SizedBox(height: 12),
+          Center(
+            child: InkWell(
+              onTap: () => _showMediaDialog(context),
+              child: const CircleAvatar(
+                backgroundColor: Colors.blue,
+                radius: 30,
+                child: Icon(Icons.camera_alt, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ];
+    }
+
+    return [];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Form Laporan'),
+        title: const Text('e-Turjawali'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -163,9 +537,7 @@ class _LaporanPageState extends State<LaporanPage> {
             Expanded(
               child: ListView(
                 children: [
-                  // Header waktu
                   Container(
-                    width: double.infinity,
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 16,
@@ -204,129 +576,51 @@ class _LaporanPageState extends State<LaporanPage> {
                     ),
                   ),
 
-                  //Judul
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
+                    padding: const EdgeInsets.all(16),
                     color: Colors.black,
-                    child: Text(
-                      "LAPORAN PENGATURAN",
+                    child: const Text(
+                      "LAPORAN TURJAWALI",
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
-                  const SizedBox(height: 24),
 
-                  //Form
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Langkah 1: Lokasi
-                        const Text('1. Di mana lokasi pengaturan?'),
+                        const Text('Laporan jenis apa yang akan dibuat?'),
                         buildDropdown(
-                          selectedValue: _selectedLokasi,
-                          options: _lokasi,
-                          onChanged: (val) =>
-                              setState(() => _selectedLokasi = val),
-                          hint: 'Pilih lokasi',
+                          selectedValue: _selectedJenisLaporan,
+                          options: _jenisLaporan,
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedJenisLaporan = val;
+                              _currentStep = 1;
+                              _selectedLokasi = null;
+                              _selectedJenisGatur = null;
+                              _selectedKegiatan = null;
+                              _detailController.clear();
+                              _lambungController.clear();
+                            });
+                          },
                         ),
-                        const Divider(thickness: 1, color: Colors.grey),
+                        const Divider(thickness: 1),
                         const SizedBox(height: 16),
-
-                        // Langkah 2: Jenis Gatur (muncul setelah lokasi dipilih)
-                        if (_selectedLokasi != null) ...[
-                          const Text('2. Jenis pengaturan apa yang dilakukan?'),
-                          buildDropdown(
-                            selectedValue: _selectedJenisGatur,
-                            options: _jenisGatur,
-                            onChanged: (val) =>
-                                setState(() => _selectedJenisGatur = val),
-                            hint: 'Pilih jenis gatur',
-                          ),
-                          const Divider(thickness: 1, color: Colors.grey),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Langkah 3: Kegiatan (muncul setelah jenis gatur dipilih)
-                        if (_selectedJenisGatur != null) ...[
-                          const Text('3. Kegiatan apa yang dilakukan?'),
-                          buildDropdown(
-                            selectedValue: _selectedKegiatan,
-                            options: _kegiatan,
-                            onChanged: (val) =>
-                                setState(() => _selectedKegiatan = val),
-                            hint: 'Pilih kegiatan',
-                          ),
-                          const Divider(thickness: 1, color: Colors.grey),
-                          const SizedBox(height: 24),
-                        ],
-
-                        // Langkah 4: Detail laporan (muncul setelah kegiatan dipilih)
-                        if (_selectedKegiatan != null) ...[
-                          const Text('4. Jelaskan detail kegiatan:'),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _detailController,
-                            decoration: const InputDecoration(
-                              hintText: 'Masukkan detail laporan',
-                              border: UnderlineInputBorder(),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Langkah 5: Nomor Lambung (muncul setelah detail diisi)
-                        if (_detailController.text.isNotEmpty) ...[
-                          const Text('5. Masukkan nomor lambung kendaraan:'),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _lambungController,
-                            decoration: const InputDecoration(
-                              hintText: 'Masukkan nomor lambung',
-                              border: UnderlineInputBorder(),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-
-                        // Langkah 6: Media (muncul setelah lambung diisi)
-                        if (_lambungController.text.isNotEmpty) ...[
-                          const Text('6. Ambil media pendukung:'),
-                          const SizedBox(height: 12),
-                          Center(
-                            child: InkWell(
-                              onTap: () => _showMediaDialog(context),
-                              child: const CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.blue,
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
+                        ...buildFormSteps(),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            // Tombol SIMPAN dan BATAL
             Row(
               children: [
-                // Tombol BATAL di kiri
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       shape: const RoundedRectangleBorder(
@@ -340,29 +634,12 @@ class _LaporanPageState extends State<LaporanPage> {
                     ),
                   ),
                 ),
-
-                // Tombol SIMPAN di kanan
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      if (_selectedJenisLaporan != null &&
-                          _selectedLokasi != null &&
-                          _selectedJenisGatur != null &&
-                          _selectedKegiatan != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Laporan berhasil diisi'),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Lengkapi semua pilihan terlebih dahulu',
-                            ),
-                          ),
-                        );
-                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Laporan berhasil diisi')),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
