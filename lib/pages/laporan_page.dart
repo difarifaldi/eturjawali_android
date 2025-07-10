@@ -28,8 +28,8 @@ class _LaporanPageState extends State<LaporanPage> {
   String? _selectedJenisGatur;
   String? _selectedKegiatan;
 
-  TextEditingController _detailController = TextEditingController();
-  TextEditingController _lambungController = TextEditingController();
+  final TextEditingController _detailController = TextEditingController();
+  final TextEditingController _lambungController = TextEditingController();
 
   final List<String> _jenisLaporan = [
     'PENGATURAN',
@@ -62,8 +62,7 @@ class _LaporanPageState extends State<LaporanPage> {
     'BERI TEGURAN',
     'MENILANG',
     'MENYEBRANGKAN',
-    'IJIN',
-    'BERI JALAN',
+    'IJIN BERI JALAN',
     'PENANGANAN TP TKP',
     'GUANTIBMAS',
     'LAIN LAIN',
@@ -523,6 +522,25 @@ class _LaporanPageState extends State<LaporanPage> {
     return [];
   }
 
+  // Map Data
+  Map<String, dynamic> getLaporanData() {
+    final laporan = <String, dynamic>{
+      'jenis_laporan': _selectedJenisLaporan,
+      'lokasi': _selectedLokasi,
+      'kegiatan': _selectedKegiatan,
+      'detail': _detailController.text,
+      'lambung': _lambungController.text,
+    };
+
+    if (_selectedJenisLaporan == 'PENGATURAN') {
+      laporan['jenis_gatur'] = _selectedJenisGatur;
+    } else if (_selectedJenisLaporan == 'PATROLI') {
+      laporan['jenis_kendaraan'] = _selectedJenisGatur;
+    } else if (_selectedJenisLaporan == 'PENGAWALAN') {}
+
+    return laporan;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -637,8 +655,22 @@ class _LaporanPageState extends State<LaporanPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Laporan berhasil diisi')),
+                      final data = getLaporanData();
+
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Data Laporan"),
+                          content: SingleChildScrollView(
+                            child: Text(data.toString()),
+                          ),
+                          actions: [
+                            TextButton(
+                              child: const Text("Tutup"),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
