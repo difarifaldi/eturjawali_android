@@ -393,15 +393,21 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                     children: [
                       const SizedBox(height: 8),
                       Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: isPanelOpen
+                              ? 40
+                              : 100, // Lebar lebih besar saat ditutup
+                          height: isPanelOpen
+                              ? 4
+                              : 6, // Tinggi lebih besar saat ditutup
                           decoration: BoxDecoration(
-                            color: Colors.grey[400],
-                            borderRadius: BorderRadius.circular(2),
+                            color: isPanelOpen ? Colors.grey[400] : Colors.blue,
+                            borderRadius: BorderRadius.circular(3),
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 8),
                       if (isPanelOpen)
                         Expanded(
