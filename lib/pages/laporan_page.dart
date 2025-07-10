@@ -26,12 +26,6 @@ class _LaporanPageState extends State<LaporanPage> {
   String? _selectedJenisGatur;
   String? _selectedKegiatan;
 
-  bool _showDetailForm = false;
-  String? _selectedDetailOption;
-
-  bool _showMediaPicker = false;
-  String? _selectedMediaOption;
-
   TextEditingController _detailController = TextEditingController();
   TextEditingController _lambungController = TextEditingController();
 
@@ -231,92 +225,50 @@ class _LaporanPageState extends State<LaporanPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Dropdown: Lokasi
+                        // Langkah 1: Lokasi
+                        const Text('1. Di mana lokasi pengaturan?'),
                         buildDropdown(
                           selectedValue: _selectedLokasi,
                           options: _lokasi,
                           onChanged: (val) =>
                               setState(() => _selectedLokasi = val),
-                          hint: 'LOKASI',
+                          hint: 'Pilih lokasi',
                         ),
-
                         const Divider(thickness: 1, color: Colors.grey),
                         const SizedBox(height: 16),
 
-                        // Dropdown: Jenis Gatur
-                        buildDropdown(
-                          selectedValue: _selectedJenisGatur,
-                          options: _jenisGatur,
-                          onChanged: (val) =>
-                              setState(() => _selectedJenisGatur = val),
-                          hint: 'JENIS GATUR',
-                        ),
-
-                        const Divider(thickness: 1, color: Colors.grey),
-                        const SizedBox(height: 16),
-
-                        // Dropdown: Kegiatan
-                        buildDropdown(
-                          selectedValue: _selectedKegiatan,
-                          options: _kegiatan,
-                          onChanged: (val) =>
-                              setState(() => _selectedKegiatan = val),
-                          hint: 'KEGIATAN',
-                        ),
-
-                        const Divider(thickness: 1, color: Colors.grey),
-                        const SizedBox(height: 24),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Apakah Anda ingin mengirim detail kegiatan?',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Radio<String>(
-                                  value: 'Ya',
-                                  groupValue: _selectedDetailOption,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedDetailOption = value;
-                                      _showDetailForm = value == 'Ya';
-                                    });
-                                  },
-                                ),
-                                const Text('Ya'),
-                                const SizedBox(width: 16),
-                                Radio<String>(
-                                  value: 'Tidak',
-                                  groupValue: _selectedDetailOption,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedDetailOption = value;
-                                      _showDetailForm = value == 'Ya';
-                                    });
-                                  },
-                                ),
-                                const Text('Tidak'),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                        const Divider(thickness: 1, color: Colors.grey),
-                        const SizedBox(height: 16),
-
-                        if (_showDetailForm) ...[
-                          // Label untuk Detail Laporan
-                          const Text(
-                            'Detail Laporan',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                        // Langkah 2: Jenis Gatur (muncul setelah lokasi dipilih)
+                        if (_selectedLokasi != null) ...[
+                          const Text('2. Jenis pengaturan apa yang dilakukan?'),
+                          buildDropdown(
+                            selectedValue: _selectedJenisGatur,
+                            options: _jenisGatur,
+                            onChanged: (val) =>
+                                setState(() => _selectedJenisGatur = val),
+                            hint: 'Pilih jenis gatur',
                           ),
-                          const SizedBox(height: 8),
+                          const Divider(thickness: 1, color: Colors.grey),
+                          const SizedBox(height: 16),
+                        ],
 
-                          // Input detail laporan
+                        // Langkah 3: Kegiatan (muncul setelah jenis gatur dipilih)
+                        if (_selectedJenisGatur != null) ...[
+                          const Text('3. Kegiatan apa yang dilakukan?'),
+                          buildDropdown(
+                            selectedValue: _selectedKegiatan,
+                            options: _kegiatan,
+                            onChanged: (val) =>
+                                setState(() => _selectedKegiatan = val),
+                            hint: 'Pilih kegiatan',
+                          ),
+                          const Divider(thickness: 1, color: Colors.grey),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Langkah 4: Detail laporan (muncul setelah kegiatan dipilih)
+                        if (_selectedKegiatan != null) ...[
+                          const Text('4. Jelaskan detail kegiatan:'),
+                          const SizedBox(height: 8),
                           TextField(
                             controller: _detailController,
                             decoration: const InputDecoration(
@@ -325,15 +277,12 @@ class _LaporanPageState extends State<LaporanPage> {
                             ),
                           ),
                           const SizedBox(height: 16),
+                        ],
 
-                          // Label untuk Nomor Lambung
-                          const Text(
-                            'Nomor Lambung',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                        // Langkah 5: Nomor Lambung (muncul setelah detail diisi)
+                        if (_detailController.text.isNotEmpty) ...[
+                          const Text('5. Masukkan nomor lambung kendaraan:'),
                           const SizedBox(height: 8),
-
-                          // Input nomor lambung
                           TextField(
                             controller: _lambungController,
                             decoration: const InputDecoration(
@@ -344,43 +293,10 @@ class _LaporanPageState extends State<LaporanPage> {
                           const SizedBox(height: 24),
                         ],
 
-                        // Pertanyaan media
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Apakah Anda ingin menambahkan media?',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Radio<String>(
-                              value: 'Ya',
-                              groupValue: _selectedMediaOption,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedMediaOption = value;
-                                  _showMediaPicker = value == 'Ya';
-                                });
-                              },
-                            ),
-                            const Text('Ya'),
-                            const SizedBox(width: 16),
-                            Radio<String>(
-                              value: 'Tidak',
-                              groupValue: _selectedMediaOption,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedMediaOption = value;
-                                  _showMediaPicker = value == 'Ya';
-                                });
-                              },
-                            ),
-                            const Text('Tidak'),
-                          ],
-                        ),
-
-                        if (_showMediaPicker) ...[
-                          const SizedBox(height: 16),
+                        // Langkah 6: Media (muncul setelah lambung diisi)
+                        if (_lambungController.text.isNotEmpty) ...[
+                          const Text('6. Ambil media pendukung:'),
+                          const SizedBox(height: 12),
                           Center(
                             child: InkWell(
                               onTap: () => _showMediaDialog(context),
