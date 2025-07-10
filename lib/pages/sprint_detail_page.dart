@@ -6,12 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'dart:async';
+import 'dart:ui';
 import '../api_service.dart';
 import '../models/checkin_request.dart';
 
 class SprintDetailPage extends StatefulWidget {
   final int sprintId;
   final int userId;
+
   const SprintDetailPage({
     super.key,
     required this.sprintId,
@@ -36,6 +38,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   bool isTimerRunning = false;
   Duration elapsedTime = Duration.zero;
   Timer? _timer;
+
   @override
   void initState() {
     super.initState();
@@ -258,6 +261,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     );
   }
 
+  bool isPanelOpen = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -266,9 +270,10 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
+
       body: Stack(
         children: [
-          // MAP
+          // Map
           if (userLocation != null)
             FlutterMap(
               options: MapOptions(center: userLocation, zoom: 16),
@@ -343,107 +348,197 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             ),
           ),
 
-          // Menampilkan pesan jika lokasi belum tersedia
-          if (userLocation == null)
-            const Padding(
-              padding: EdgeInsets.all(8),
-              child: Text(
-                'Sedang mencari lokasi...',
-                style: TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-          // Tombol Mulai
+          // Tombol
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ElevatedButton(
-              onPressed: () {
-                if (isTimerRunning) {
-                  stopElapsedTimer();
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: isTimerRunning ? _buildStopButtons() : _buildStartButton(),
+          ),
 
-                  final double jarak = distance.as(
-                    LengthUnit.Meter,
-                    userLocation!,
-                    lokasiKesatuan,
-                  );
-
-                  if (jarak > radiusMeter) {
-                    showAlasanDialog(
-                      context: context,
-                      title: 'Konfirmasi',
-                      message:
-                          'Anda berada di luar radius.\nMasukkan alasan untuk menyelesaikan giat:',
-                      onConfirm: (alasan) {
-                        checkoutData(alasan);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Giat dihentikan (luar radius)'),
-                          ),
-                        );
-                      },
-                    );
-                  } else {
-                    checkoutData('');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Giat dihentikan')),
-                    );
+          if (isTimerRunning)
+            // Panel scrollable
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              bottom: 100,
+              left: 0,
+              right: 0,
+              height: isPanelOpen ? 240 : 60,
+              child: GestureDetector(
+                onVerticalDragUpdate: (details) {
+                  if (details.primaryDelta! < -10) {
+                    setState(() => isPanelOpen = true);
+                  } else if (details.primaryDelta! > 10) {
+                    setState(() => isPanelOpen = false);
                   }
-
-                  return;
-                }
-
-                if (userLocation == null) return;
-
-                final double jarak = distance.as(
-                  LengthUnit.Meter,
-                  userLocation!,
-                  lokasiKesatuan,
-                );
-
-                if (jarak > radiusMeter) {
-                  showAlasanDialog(
-                    context: context,
-                    title: 'Konfirmasi',
-                    message:
-                        'Anda berada di luar radius.\nMasukkan alasan untuk lanjut giat:',
-                    onConfirm: (alasan) {
-                      startElapsedTimer();
-                      saveSprintId();
-                      checkinData(alasan);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Giat dimulai (luar radius)'),
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isPanelOpen ? Colors.white : Colors.transparent,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    boxShadow: isPanelOpen
+                        ? [
+                            const BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                      );
-                    },
-                  );
-                } else {
-                  startElapsedTimer();
-                  saveSprintId();
-                  checkinData("");
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('Giat dimulai')));
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                minimumSize: const Size.fromHeight(60),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
+                      ),
+                      const SizedBox(height: 8),
+                      if (isPanelOpen)
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Daftar Kegiatan',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                Text('Belum ada kegiatan.'),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-              child: Text(
-                isTimerRunning ? "SELESAIKAN" : "MULAI",
-                style: const TextStyle(fontSize: 18, color: Colors.white),
-              ),
             ),
-          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStartButton() {
+    return ElevatedButton(
+      onPressed: () {
+        if (userLocation == null) return;
+
+        final double jarak = distance.as(
+          LengthUnit.Meter,
+          userLocation!,
+          lokasiKesatuan,
+        );
+
+        if (jarak > radiusMeter) {
+          showAlasanDialog(
+            context: context,
+            title: 'Konfirmasi',
+            message:
+                'Anda berada di luar radius.\nMasukkan alasan untuk lanjut giat:',
+            onConfirm: (alasan) {
+              startElapsedTimer();
+              saveSprintId();
+              checkinData(alasan);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Giat dimulai (luar radius)')),
+              );
+            },
+          );
+        } else {
+          startElapsedTimer();
+          saveSprintId();
+          checkinData("");
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Giat dimulai')));
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        minimumSize: const Size.fromHeight(60),
+      ),
+      child: const Text(
+        "MULAI",
+        style: TextStyle(fontSize: 18, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildStopButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Menu laporan diklik')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text("LAPORAN", style: TextStyle(color: Colors.white)),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              stopElapsedTimer();
+              final double jarak = distance.as(
+                LengthUnit.Meter,
+                userLocation!,
+                lokasiKesatuan,
+              );
+
+              if (jarak > radiusMeter) {
+                showAlasanDialog(
+                  context: context,
+                  title: 'Konfirmasi',
+                  message:
+                      'Anda berada di luar radius.\nMasukkan alasan untuk menyelesaikan giat:',
+                  onConfirm: (alasan) {
+                    checkoutData(alasan);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Giat dihentikan (luar radius)'),
+                      ),
+                    );
+                  },
+                );
+              } else {
+                checkoutData('');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Giat dihentikan')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              "SELESAIKAN",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
