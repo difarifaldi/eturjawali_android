@@ -652,13 +652,27 @@ class _LaporanPageState extends State<LaporanPage> {
                 final rute = _ruteListPatroli[index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Rute ${index + 1}:"),
-                      Text("Lat: ${rute['lat']}, Lng: ${rute['lng']}"),
-                      Text(rute['alamat']),
-                      const Divider(thickness: 1),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Rute ${index + 1}:"),
+                            Text("Lat: ${rute['lat']}, Lng: ${rute['lng']}"),
+                            Text(rute['alamat']),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _ruteListPatroli.removeAt(index);
+                          });
+                        },
+                      ),
                     ],
                   ),
                 );
