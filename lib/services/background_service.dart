@@ -220,6 +220,8 @@ Future<void> startTrackingLoop(
             longitude: position.longitude,
           );
           print("[TRACKING] Response setelah kirim: $response");
+
+          await checkLaporanInactivity(prefs, flutterLocalNotificationsPlugin);
         } catch (e, stack) {
           print("[TRACKING ERROR] Gagal kirim ke server: $e");
           print("[STACK] $stack");
@@ -230,7 +232,6 @@ Future<void> startTrackingLoop(
         );
       }
 
-      await checkLaporanInactivity(prefs, flutterLocalNotificationsPlugin);
       await Future.delayed(const Duration(seconds: 5));
     } catch (e, stack) {
       print("[TRACKING ERROR] $e");

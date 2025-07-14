@@ -223,25 +223,35 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     required void Function(String alasan) onConfirm,
   }) {
     final TextEditingController alasanController = TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text(title),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(message),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: alasanController,
-                decoration: const InputDecoration(
-                  hintText: 'Masukan Keterangan',
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(message),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: alasanController,
+                  decoration: const InputDecoration(
+                    hintText: 'Masukkan Keterangan',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Keterangan tidak boleh kosong';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -250,9 +260,12 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             ),
             TextButton(
               onPressed: () {
-                final alasan = alasanController.text;
-                Navigator.of(context).pop();
-                onConfirm(alasan);
+                if (formKey.currentState!.validate()) {
+                  final alasan = alasanController.text;
+                  Navigator.of(context).pop();
+                  onConfirm(alasan);
+                }
+                // Jika tidak valid, pesan error otomatis muncul di TextFormField
               },
               child: const Text('Ya'),
             ),
