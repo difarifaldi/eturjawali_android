@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LaporanPage extends StatefulWidget {
   final DateTime startTime;
@@ -1054,9 +1055,21 @@ class _LaporanPageState extends State<LaporanPage> {
                 ),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       final data = getLaporanData();
 
+                      // Simpan data ke SharedPreferences
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString(
+                        'last_laporan',
+                        jsonEncode(data),
+                      ); // simpan data laporan
+                      await prefs.setInt(
+                        'last_report_time',
+                        DateTime.now().millisecondsSinceEpoch,
+                      ); // simpan waktu sekarang
+
+                      // Tampilkan data di dialog
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -1073,6 +1086,7 @@ class _LaporanPageState extends State<LaporanPage> {
                         ),
                       );
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       shape: const RoundedRectangleBorder(
