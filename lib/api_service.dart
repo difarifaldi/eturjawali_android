@@ -321,6 +321,8 @@ class ApiService {
       body: jsonEncode(request.toJson()),
     );
 
+    print("[STOP GIAT] Response: ${response.statusCode}");
+    print('[STOP GIAT] Response Body: ${response.body}');
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['success'] != null;

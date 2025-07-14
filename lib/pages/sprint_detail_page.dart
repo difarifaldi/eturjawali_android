@@ -294,7 +294,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             child: isTimerRunning
                 ? SlidingUpPanel(
                     controller: _panelController,
-                    minHeight: 100,
+                    minHeight: 80,
                     maxHeight: 250,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
@@ -316,18 +316,18 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
           // Tombol Laporan & Selesaikan di atas panel
           if (isTimerRunning)
             Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: _buildStopButtons(),
             ),
 
           // Tombol Mulai
           if (!isTimerRunning)
             Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: _buildStartButton(),
             ),
         ],
@@ -368,15 +368,12 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
 
         // Waktu
         Positioned(
-          top: 60,
-          left: 16,
-          right: 16,
+          top: 0,
+          left: 0,
+          right: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.yellow,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(color: Colors.yellow),
             child: Row(
               children: [
                 const Icon(Icons.access_time, color: Colors.black),
@@ -427,13 +424,14 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         children: [
           const SizedBox(height: 8),
           Container(
-            width: 60,
-            height: 6,
+            width: 100,
+            height: 8,
             decoration: BoxDecoration(
-              color: Colors.grey[400],
-              borderRadius: BorderRadius.circular(3),
+              color: Colors.grey[700],
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
+
           if (isPanelOpen) ...[
             const SizedBox(height: 12),
             const Text(
@@ -492,6 +490,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
         minimumSize: const Size.fromHeight(60),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
       child: const Text(
         "MULAI",
@@ -528,13 +527,14 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             },
 
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: Colors.blue,
               minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             child: const Text("LAPORAN", style: TextStyle(color: Colors.white)),
           ),
         ),
-        const SizedBox(width: 16),
+
         Expanded(
           child: ElevatedButton(
             onPressed: () {
@@ -571,6 +571,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             child: const Text(
               "SELESAIKAN",
