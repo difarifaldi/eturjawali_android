@@ -538,7 +538,6 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         Expanded(
           child: ElevatedButton(
             onPressed: () {
-              stopElapsedTimer();
               final double jarak = distance.as(
                 LengthUnit.Meter,
                 userLocation!,
@@ -552,6 +551,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   message:
                       'Anda berada di luar radius.\nMasukkan alasan untuk menyelesaikan giat:',
                   onConfirm: (alasan) {
+                    stopElapsedTimer();
                     checkoutData(alasan);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -561,6 +561,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                   },
                 );
               } else {
+                stopElapsedTimer();
                 checkoutData('');
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Giat dihentikan')),
