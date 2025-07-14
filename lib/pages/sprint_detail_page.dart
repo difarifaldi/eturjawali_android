@@ -54,27 +54,29 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
 
   //Mulai Waktu
   void startElapsedTimer({bool fromRestore = false}) async {
-    if (_timer != null && _timer!.isActive) return;
-
     final prefs = await SharedPreferences.getInstance();
 
     if (!fromRestore) {
       final now = DateTime.now();
       await prefs.setBool('isTimerRunning', true);
       await prefs.setString('startTime', now.toIso8601String());
-      setState(() {
-        elapsedTime = Duration.zero;
-      });
     }
 
     setState(() {
       isTimerRunning = true;
     });
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        elapsedTime += const Duration(seconds: 1);
-      });
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      final startStr = prefs.getString('startTime');
+      if (startStr != null) {
+        final start = DateTime.tryParse(startStr);
+        if (start != null) {
+          final now = DateTime.now();
+          setState(() {
+            elapsedTime = now.difference(start);
+          });
+        }
+      }
     });
   }
 
@@ -167,6 +169,9 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
           setState(() {
             isTimerRunning = true;
             elapsedTime = duration;
+            currentTime = DateFormat(
+              'HH:mm:ss',
+            ).format(start); // ← Tambahkan ini
           });
 
           startElapsedTimer(fromRestore: true);
@@ -373,17 +378,20 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
           right: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(color: Colors.yellow),
+            decoration: BoxDecoration(color: Colors.amber[300]),
             child: Row(
               children: [
                 const Icon(Icons.access_time, color: Colors.black),
                 const SizedBox(width: 8),
                 const Text(
-                  "Mulai",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  "Mulai: ",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                Text(
+                  currentTime,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
                 const Spacer(),
-                Text(currentTime),
                 if (isTimerRunning)
                   Padding(
                     padding: const EdgeInsets.only(left: 12),
