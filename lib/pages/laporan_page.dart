@@ -1,5 +1,10 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class LaporanPage extends StatefulWidget {
   final DateTime startTime;
@@ -111,6 +116,26 @@ class _LaporanPageState extends State<LaporanPage> {
     'LAIN LAIN',
   ];
 
+  Future<String> getAlamatLengkap(double lat, double lng) async {
+    final url = Uri.parse(
+      'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lng',
+    );
+
+    final response = await http.get(
+      url,
+      headers: {
+        'User-Agent': 'flutter-app', // Diperlukan oleh Nominatim
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['display_name'] ?? 'Alamat tidak ditemukan';
+    } else {
+      return 'Gagal mendapatkan alamat';
+    }
+  }
+
   void _showMediaDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -142,6 +167,90 @@ class _LaporanPageState extends State<LaporanPage> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  final List<Map<String, dynamic>> _ruteListPengawalan = [];
+  final List<Map<String, dynamic>> _ruteListPatroli = [];
+  void _showRuteDialog(BuildContext context) async {
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final lat = position.latitude;
+    final lng = position.longitude;
+
+    // Ambil alamat lengkap dari latlng
+    final lokasiLengkap = await getAlamatLengkap(lat, lng);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Rute Lokasi"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 200,
+                child: FlutterMap(
+                  options: MapOptions(center: LatLng(lat, lng), zoom: 16),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.eturjawali_android',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: LatLng(lat, lng),
+                          width: 80,
+                          height: 80,
+                          child: const Icon(
+                            Icons.location_pin,
+                            size: 40,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text("Lokasi"),
+              Text("Lat: $lat, Lng: $lng"),
+              Text(lokasiLengkap),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Simpan rute ke list
+                setState(() {
+                  final rute = {
+                    'lat': lat,
+                    'lng': lng,
+                    'alamat': lokasiLengkap,
+                  };
+
+                  if (_selectedJenisLaporan == 'PENGAWALAN') {
+                    _ruteListPengawalan.add(rute);
+                  } else if (_selectedJenisLaporan == 'PATROLI') {
+                    _ruteListPatroli.add(rute);
+                  }
+
+                  _currentStep = _currentStep + 1;
+                });
+
+                Navigator.pop(context);
+              },
+              child: const Text("SIMPAN"),
+            ),
+          ],
         );
       },
     );
@@ -394,16 +503,52 @@ class _LaporanPageState extends State<LaporanPage> {
         ],
         if (_currentStep >= 4) ...[
           const Text("4. Daftar rute pengawalan:"),
-          TextField(
-            onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 5);
-            },
-            decoration: const InputDecoration(
-              hintText: "Masukkan rute pengawalan",
-            ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () => _showRuteDialog(context),
+            icon: const Icon(Icons.map),
+            label: const Text("Tambah rute"),
           ),
+          const SizedBox(height: 12),
+
+          // Tampilkan rute yang sudah ditambahkan
+          if (_ruteListPengawalan.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(_ruteListPengawalan.length, (index) {
+                final rute = _ruteListPengawalan[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Rute ${index + 1}:"),
+                            Text("Lat: ${rute['lat']}, Lng: ${rute['lng']}"),
+                            Text(rute['alamat']),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _ruteListPengawalan.removeAt(index);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+
           const SizedBox(height: 24),
         ],
+
         if (_currentStep >= 5) ...[
           const Text("5. Ambil media pendukung:"),
           const SizedBox(height: 12),
@@ -492,14 +637,34 @@ class _LaporanPageState extends State<LaporanPage> {
         ],
         if (_currentStep >= 6) ...[
           const Text("6. Daftar rute patroli:"),
-          TextField(
-            onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 7);
-            },
-            decoration: const InputDecoration(
-              hintText: "Masukkan rute patroli",
-            ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () => _showRuteDialog(context),
+            icon: const Icon(Icons.map),
+            label: const Text("Tambah rute"),
           ),
+          const SizedBox(height: 12),
+
+          if (_ruteListPatroli.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(_ruteListPatroli.length, (index) {
+                final rute = _ruteListPatroli[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Rute ${index + 1}:"),
+                      Text("Lat: ${rute['lat']}, Lng: ${rute['lng']}"),
+                      Text(rute['alamat']),
+                      const Divider(thickness: 1),
+                    ],
+                  ),
+                );
+              }),
+            ),
+
           const SizedBox(height: 24),
         ],
         if (_currentStep >= 7) ...[
