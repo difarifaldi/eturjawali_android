@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:async';
 import 'dart:ui';
 import '../api_service.dart';
@@ -39,6 +40,9 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   bool isTimerRunning = false;
   Duration elapsedTime = Duration.zero;
   Timer? _timer;
+
+  final PanelController _panelController = PanelController();
+  bool isPanelOpen = false;
 
   @override
   void initState() {
@@ -275,7 +279,6 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     );
   }
 
-  bool isPanelOpen = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -284,62 +287,110 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-
       body: Stack(
         children: [
-          // Map
-          if (userLocation != null)
-            FlutterMap(
-              options: MapOptions(center: userLocation, zoom: 16),
-              children: [
-                TileLayer(
-                  urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  userAgentPackageName: 'com.example.eturjawali_android',
-                ),
-
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: userLocation!,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                        size: 40,
-                      ),
+          // Panel dan isi layar utama
+          Positioned.fill(
+            child: isTimerRunning
+                ? SlidingUpPanel(
+                    controller: _panelController,
+                    minHeight: 100,
+                    maxHeight: 250,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
                     ),
-                  ],
-                ),
-              ],
-            )
-          else
-            const Center(child: CircularProgressIndicator()),
+                    color: Colors.transparent,
+                    boxShadow: [],
+                    panelBuilder: (ScrollController sc) =>
+                        _buildSlidingPanel(sc),
+                    onPanelSlide: (position) {
+                      setState(() {
+                        isPanelOpen = position > 0.2; // Ubah sesuai kenyamanan
+                      });
+                    },
+                    body: _buildMainStack(),
+                  )
+                : _buildMainStack(),
+          ),
 
-          // Waktu
-          Positioned(
-            top: 60,
-            left: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.yellow,
-                borderRadius: BorderRadius.circular(12),
+          // Tombol Laporan & Selesaikan di atas panel
+          if (isTimerRunning)
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: _buildStopButtons(),
+            ),
+
+          // Tombol Mulai
+          if (!isTimerRunning)
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: _buildStartButton(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainStack() {
+    return Stack(
+      children: [
+        // Map
+        if (userLocation != null)
+          FlutterMap(
+            options: MapOptions(center: userLocation, zoom: 16),
+            children: [
+              TileLayer(
+                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                userAgentPackageName: 'com.example.eturjawali_android',
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time, color: Colors.black),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Mulai",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: userLocation!,
+                    width: 40,
+                    height: 40,
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 40,
+                    ),
                   ),
-                  const Spacer(),
-                  Text(currentTime),
-                  if (isTimerRunning) ...[
-                    const SizedBox(width: 12),
-                    Container(
+                ],
+              ),
+            ],
+          )
+        else
+          const Center(child: CircularProgressIndicator()),
+
+        // Waktu
+        Positioned(
+          top: 60,
+          left: 16,
+          right: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.yellow,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.access_time, color: Colors.black),
+                const SizedBox(width: 8),
+                const Text(
+                  "Mulai",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                Text(currentTime),
+                if (isTimerRunning)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 4,
@@ -356,97 +407,48 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                         ),
                       ),
                     ),
-                  ],
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
+        ),
+      ],
+    );
+  }
 
-          // Tombol
-          Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: isTimerRunning ? _buildStopButtons() : _buildStartButton(),
+  Widget _buildSlidingPanel(ScrollController controller) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: isPanelOpen ? Colors.white : Colors.transparent,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 60,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.grey[400],
+              borderRadius: BorderRadius.circular(3),
+            ),
           ),
-
-          if (isTimerRunning)
-            // Panel scrollable
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              bottom: 100,
-              left: 0,
-              right: 0,
-              height: isPanelOpen ? 240 : 60,
-              child: GestureDetector(
-                onVerticalDragUpdate: (details) {
-                  if (details.primaryDelta! < -10) {
-                    setState(() => isPanelOpen = true);
-                  } else if (details.primaryDelta! > 10) {
-                    setState(() => isPanelOpen = false);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: isPanelOpen ? Colors.white : Colors.transparent,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    boxShadow: isPanelOpen
-                        ? [
-                            const BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8),
-                      Center(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: isPanelOpen
-                              ? 40
-                              : 100, // Lebar lebih besar saat ditutup
-                          height: isPanelOpen
-                              ? 4
-                              : 6, // Tinggi lebih besar saat ditutup
-                          decoration: BoxDecoration(
-                            color: isPanelOpen ? Colors.grey[400] : Colors.blue,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-                      if (isPanelOpen)
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  'Daftar Kegiatan',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                Text('Belum ada kegiatan.'),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+          if (isPanelOpen) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Daftar Kegiatan',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: ListView(
+                controller: controller,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: const [Text('Belum ada kegiatan.')],
               ),
             ),
+          ],
         ],
       ),
     );
