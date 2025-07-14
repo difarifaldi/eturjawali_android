@@ -503,7 +503,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                         builder: (context) => LaporanPage(
                           startTime: startTime,
                           isTimerRunning: isTimerRunning,
-                          currentTime: currentTime
+                          currentTime: currentTime,
                         ),
                       ),
                     );
