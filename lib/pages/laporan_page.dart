@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 class LaporanPage extends StatefulWidget {
   final DateTime startTime;
@@ -136,6 +139,11 @@ class _LaporanPageState extends State<LaporanPage> {
     }
   }
 
+  final List<File> _mediaListPengaturan = [];
+  final List<File> _mediaListPenjagaan = [];
+  final List<File> _mediaListPengawalan = [];
+  final List<File> _mediaListPatroli = [];
+  final ImagePicker _picker = ImagePicker();
   void _showMediaDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -148,17 +156,48 @@ class _LaporanPageState extends State<LaporanPage> {
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Dari Kamera'),
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () async {
+                  final XFile? pickedFile = await _picker.pickImage(
+                    source: ImageSource.camera,
+                  );
+                  if (pickedFile != null) {
+                    setState(() {
+                      if (_selectedJenisLaporan == 'PENGATURAN') {
+                        _mediaListPengaturan.add(File(pickedFile.path));
+                      } else if (_selectedJenisLaporan == 'PENJAGAAN') {
+                        _mediaListPenjagaan.add(File(pickedFile.path));
+                      } else if (_selectedJenisLaporan == 'PENGAWALAN') {
+                        _mediaListPengawalan.add(File(pickedFile.path));
+                      } else if (_selectedJenisLaporan == 'PATROLI') {
+                        _mediaListPatroli.add(File(pickedFile.path));
+                      }
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: const Text('Foto dari Kamera'),
-                onTap: () => Navigator.of(context).pop(),
-              ),
-              ListTile(
-                leading: const Icon(Icons.video_library),
-                title: const Text('Video dari Galeri'),
-                onTap: () => Navigator.of(context).pop(),
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Dari Galeri'),
+                onTap: () async {
+                  final XFile? pickedFile = await _picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
+                  if (pickedFile != null) {
+                    setState(() {
+                      if (_selectedJenisLaporan == 'PENGATURAN') {
+                        _mediaListPengaturan.add(File(pickedFile.path));
+                      } else if (_selectedJenisLaporan == 'PENJAGAAN') {
+                        _mediaListPenjagaan.add(File(pickedFile.path));
+                      } else if (_selectedJenisLaporan == 'PENGAWALAN') {
+                        _mediaListPengawalan.add(File(pickedFile.path));
+                      } else if (_selectedJenisLaporan == 'PATROLI') {
+                        _mediaListPatroli.add(File(pickedFile.path));
+                      }
+                    });
+                  }
+                  Navigator.of(context).pop();
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.close),
@@ -243,7 +282,7 @@ class _LaporanPageState extends State<LaporanPage> {
                     _ruteListPatroli.add(rute);
                   }
 
-                  _currentStep = _currentStep + 1;
+                  _currentStep = max(_currentStep, 7);
                 });
 
                 Navigator.pop(context);
@@ -310,7 +349,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _lokasiPengaturan,
             onChanged: (val) => setState(() {
               _selectedLokasi = val;
-              _currentStep = 2;
+              _currentStep = max(_currentStep, 2);
             }),
             hint: "Pilih lokasi",
           ),
@@ -324,7 +363,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _jenisGatur,
             onChanged: (val) => setState(() {
               _selectedJenisGatur = val;
-              _currentStep = 3;
+              _currentStep = max(_currentStep, 3);
             }),
             hint: "Pilih jenis gatur",
           ),
@@ -338,7 +377,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _kegiatanPengaturan,
             onChanged: (val) => setState(() {
               _selectedKegiatan = val;
-              _currentStep = 4;
+              _currentStep = max(_currentStep, 4);
             }),
             hint: "Pilih kegiatan",
           ),
@@ -350,8 +389,11 @@ class _LaporanPageState extends State<LaporanPage> {
           TextField(
             controller: _detailController,
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 5);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 5));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan detail laporan",
             ),
@@ -363,8 +405,11 @@ class _LaporanPageState extends State<LaporanPage> {
           TextField(
             controller: _lambungController,
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 6);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 6));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan nomor lambung",
             ),
@@ -384,6 +429,43 @@ class _LaporanPageState extends State<LaporanPage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+
+          if (_mediaListPengaturan.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(_mediaListPengaturan.length, (index) {
+                final media = _mediaListPengaturan[index];
+                return Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        media,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _mediaListPengaturan.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+
           const SizedBox(height: 24),
         ],
       ];
@@ -396,7 +478,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _lokasiPenjagaan,
             onChanged: (val) => setState(() {
               _selectedLokasi = val;
-              _currentStep = 2;
+              _currentStep = max(_currentStep, 2);
             }),
             hint: "Pilih lokasi",
           ),
@@ -410,7 +492,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _kegiatanPenjagaan,
             onChanged: (val) => setState(() {
               _selectedKegiatan = val;
-              _currentStep = 3;
+              _currentStep = max(_currentStep, 3);
             }),
             hint: "Pilih kegiatan",
           ),
@@ -422,8 +504,11 @@ class _LaporanPageState extends State<LaporanPage> {
           TextField(
             controller: _detailController,
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 4);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 4));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan detail laporan",
             ),
@@ -435,8 +520,11 @@ class _LaporanPageState extends State<LaporanPage> {
           TextField(
             controller: _lambungController,
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 5);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 5));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan nomor lambung",
             ),
@@ -456,6 +544,43 @@ class _LaporanPageState extends State<LaporanPage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+
+          if (_mediaListPenjagaan.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(_mediaListPenjagaan.length, (index) {
+                final media = _mediaListPenjagaan[index];
+                return Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        media,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _mediaListPenjagaan.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+
           const SizedBox(height: 24),
         ],
       ];
@@ -468,7 +593,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _kegiatanPengawalan,
             onChanged: (val) => setState(() {
               _selectedKegiatan = val;
-              _currentStep = 2;
+              _currentStep = max(_currentStep, 2);
             }),
             hint: "Pilih kegiatan",
           ),
@@ -480,8 +605,11 @@ class _LaporanPageState extends State<LaporanPage> {
           TextField(
             controller: _detailController,
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 3);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 3));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan detail laporan",
             ),
@@ -493,8 +621,11 @@ class _LaporanPageState extends State<LaporanPage> {
           TextField(
             controller: _lambungController,
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 4);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 4));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan nomor lambung",
             ),
@@ -548,7 +679,6 @@ class _LaporanPageState extends State<LaporanPage> {
 
           const SizedBox(height: 24),
         ],
-
         if (_currentStep >= 5) ...[
           const Text("5. Ambil media pendukung:"),
           const SizedBox(height: 12),
@@ -562,6 +692,43 @@ class _LaporanPageState extends State<LaporanPage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+
+          if (_mediaListPengawalan.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(_mediaListPengawalan.length, (index) {
+                final media = _mediaListPengawalan[index];
+                return Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        media,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _mediaListPengawalan.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+
           const SizedBox(height: 24),
         ],
       ];
@@ -574,7 +741,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _jenisKendaraanPatroli,
             onChanged: (val) => setState(() {
               _selectedJenisGatur = val;
-              _currentStep = 2;
+              _currentStep = max(_currentStep, 2);
             }),
             hint: "Pilih jenis kendaraan",
           ),
@@ -588,7 +755,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _sasaranPatroli,
             onChanged: (val) => setState(() {
               _selectedLokasi = val;
-              _currentStep = 3;
+              _currentStep = max(_currentStep, 3);
             }),
             hint: "Pilih sasaran",
           ),
@@ -602,7 +769,7 @@ class _LaporanPageState extends State<LaporanPage> {
             options: _kegiatanPatroli,
             onChanged: (val) => setState(() {
               _selectedKegiatan = val;
-              _currentStep = 4;
+              _currentStep = max(_currentStep, 4);
             }),
             hint: "Pilih kegiatan",
           ),
@@ -613,9 +780,13 @@ class _LaporanPageState extends State<LaporanPage> {
           const Text("4. Jelaskan detail kegiatan:"),
           TextField(
             controller: _detailController,
+
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 5);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 5));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan detail laporan",
             ),
@@ -626,9 +797,13 @@ class _LaporanPageState extends State<LaporanPage> {
           const Text("5. Masukkan nomor lambung kendaraan:"),
           TextField(
             controller: _lambungController,
+
             onChanged: (val) {
-              if (val.isNotEmpty) setState(() => _currentStep = 6);
+              if (val.isNotEmpty) {
+                setState(() => _currentStep = max(_currentStep, 6));
+              }
             },
+
             decoration: const InputDecoration(
               hintText: "Masukkan nomor lambung",
             ),
@@ -694,6 +869,44 @@ class _LaporanPageState extends State<LaporanPage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+
+          if (_mediaListPatroli.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(_mediaListPatroli.length, (index) {
+                final media = _mediaListPatroli[index];
+                return Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        media,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _mediaListPatroli.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+
+          const SizedBox(height: 24),
         ],
       ];
     }
@@ -713,9 +926,17 @@ class _LaporanPageState extends State<LaporanPage> {
 
     if (_selectedJenisLaporan == 'PENGATURAN') {
       laporan['jenis_gatur'] = _selectedJenisGatur;
+      laporan['media'] = _mediaListPengaturan.map((file) => file.path).toList();
+    } else if (_selectedJenisLaporan == 'PENJAGAAN') {
+      laporan['media'] = _mediaListPenjagaan.map((file) => file.path).toList();
+    } else if (_selectedJenisLaporan == 'PENGAWALAN') {
+      laporan['rute'] = _ruteListPengawalan;
+      laporan['media'] = _mediaListPengawalan.map((file) => file.path).toList();
     } else if (_selectedJenisLaporan == 'PATROLI') {
       laporan['jenis_kendaraan'] = _selectedJenisGatur;
-    } else if (_selectedJenisLaporan == 'PENGAWALAN') {}
+      laporan['rute'] = _ruteListPatroli;
+      laporan['media'] = _mediaListPatroli.map((file) => file.path).toList();
+    }
 
     return laporan;
   }
