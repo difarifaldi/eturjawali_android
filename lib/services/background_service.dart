@@ -59,6 +59,49 @@ Future<void> handleLocationPermission() async {
   print('✅ Izin lokasi diberikan');
 }
 
+Future<void> checkLaporanInactivity(
+  SharedPreferences prefs,
+  FlutterLocalNotificationsPlugin notif,
+) async {
+  await prefs.reload(); // <--- Force reload agar data terbaru terbaca
+
+  final lastLaporan = prefs.getInt('last_report_time'); // ✅ Key yang benar
+  final now = DateTime.now().millisecondsSinceEpoch;
+
+  print(
+    "[DEBUG] ⏱️ Sekarang: $now, lastLaporan: $lastLaporan, selisih: ${(now - (lastLaporan ?? 0)) ~/ 1000}s",
+  );
+
+  if (lastLaporan == null || now - lastLaporan > 3 * 60 * 1000) {
+    final lastNotif = prefs.getInt('lastNotifTimestamp') ?? 0;
+    if (now - lastNotif > 3 * 60 * 1000) {
+      await notif.show(
+        999,
+        'Belum Isi Laporan',
+        'Anda belum mengisi laporan dalam 3 menit terakhir.',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'reminder_channel',
+            'Notifikasi Laporan',
+            channelDescription: 'Peringatan untuk mengisi laporan',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: 'ic_bg_service_small',
+          ),
+        ),
+        payload: 'laporan',
+      );
+
+      await prefs.setInt('lastNotifTimestamp', now);
+      print("[NOTIF] Notifikasi pengingat dikirim pukul ${DateTime.now()}");
+    } else {
+      print("[NOTIF] Notifikasi sudah dikirim sebelumnya, tunggu 3 menit lagi");
+    }
+  } else {
+    print("[NOTIF] Laporan sudah diisi dalam 3 menit terakhir");
+  }
+}
+
 @pragma('vm:entry-point')
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
@@ -187,6 +230,7 @@ Future<void> startTrackingLoop(
         );
       }
 
+      await checkLaporanInactivity(prefs, flutterLocalNotificationsPlugin);
       await Future.delayed(const Duration(seconds: 5));
     } catch (e, stack) {
       print("[TRACKING ERROR] $e");

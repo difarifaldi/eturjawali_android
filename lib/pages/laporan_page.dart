@@ -1060,14 +1060,17 @@ class _LaporanPageState extends State<LaporanPage> {
 
                       // Simpan data ke SharedPreferences
                       final prefs = await SharedPreferences.getInstance();
-                      await prefs.setString(
-                        'last_laporan',
-                        jsonEncode(data),
-                      ); // simpan data laporan
+                      await prefs.setString('last_laporan', jsonEncode(data));
+
+                      final now = DateTime.now();
                       await prefs.setInt(
                         'last_report_time',
-                        DateTime.now().millisecondsSinceEpoch,
-                      ); // simpan waktu sekarang
+                        now.millisecondsSinceEpoch,
+                      );
+
+                      print(
+                        "✅ Laporan berhasil dikirim pukul ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}",
+                      );
 
                       // Tampilkan data di dialog
                       showDialog(
