@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../api_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -63,7 +64,19 @@ class _LoginPageState extends State<LoginPage> {
       final user = await ApiService.login(username, password);
       print('Login success: $user');
 
+      final prefs = await SharedPreferences.getInstance();
+      final oldUserId = prefs.getInt('oldUserId'); // Ambil yang disimpan tadi
+
+      if (oldUserId != null && oldUserId != user['userId']) {
+        await prefs.remove('sprintId'); // Hapus sprintId kalau user beda
+      }
+
+      await prefs.remove('oldUserId'); // Bersihkan setelah dipakai
       await saveSession(user);
+
+      FlutterBackgroundService().invoke('updateUserId', {
+        'userId': user['userId'],
+      });
 
       showCustomSnackBar('Login berhasil');
       Future.delayed(const Duration(milliseconds: 500), () {

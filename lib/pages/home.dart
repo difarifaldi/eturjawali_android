@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import '../api_service.dart';
 import '../models/live_person.dart';
 import '../models/statistik.dart';
@@ -63,7 +64,27 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> handleLogout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // menghapus semua session/login
+
+    final userId = prefs.getInt('userId');
+    if (userId != null) {
+      await prefs.setInt(
+        'oldUserId',
+        userId,
+      ); // simpan userId lama untuk cek login berikutnya
+    }
+
+    // Hapus hanya data user (bukan semua prefs)
+    await prefs.remove('userId');
+    await prefs.remove('username');
+    await prefs.remove('nama');
+    await prefs.remove('kesatuan_nama');
+    await prefs.remove('email');
+    await prefs.remove('no_mobile');
+    await prefs.remove('photo');
+    await prefs.remove('isLoggedIn');
+
+    // Beri tahu background service bahwa user logout
+    FlutterBackgroundService().invoke('updateUserId', {'userId': null});
 
     Navigator.pushReplacementNamed(context, '/login');
   }
