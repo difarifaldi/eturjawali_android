@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(4.0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
@@ -203,7 +203,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 4),
 
                       // SURAT PERINTAH
                       const Align(
@@ -546,7 +546,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 4),
                       Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -571,7 +571,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 4),
 
                       // TOTAL ONLINE
                       if (statistik != null) ...[
@@ -581,21 +581,21 @@ class _HomePageState extends State<HomePage> {
                           jumlah: statistik!.statPengaturan,
                           percent: _percent(statistik!.statPengaturan),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _buildStatistikCard(
                           icon: Icons.shield,
                           label: 'PENJAGAAN',
                           jumlah: statistik!.statPenjagaan,
                           percent: _percent(statistik!.statPenjagaan),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _buildStatistikCard(
                           icon: Icons.directions_car,
                           label: 'PENGAWALAN',
                           jumlah: statistik!.statPengawalan,
                           percent: _percent(statistik!.statPengawalan),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _buildStatistikCard(
                           icon: Icons.local_police,
                           label: 'PATROLI',
@@ -650,7 +650,7 @@ class _HomePageState extends State<HomePage> {
                     (match) => '${match[1]}.',
                   ),
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 4,
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
                   ),
