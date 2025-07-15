@@ -7,14 +7,18 @@ import 'pages/splash_page.dart';
 import 'pages/laporan_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-
-import '../services/background_service.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'services/background_service.dart';
+import 'services/background_laporan_check.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   print("🔥 MAIN isolate jalan");
   WidgetsFlutterBinding.ensureInitialized();
 
+  await AndroidAlarmManager.initialize();
+
+  // Notifikasi & Background Service
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -57,6 +61,16 @@ void main() async {
   };
 
   runApp(const MyApp());
+
+  // Start alarm manager
+  AndroidAlarmManager.periodic(
+    const Duration(minutes: 3),
+    123456, // ID unik alarm
+    backgroundLaporanCheck,
+    wakeup: true,
+    rescheduleOnReboot: true,
+    exact: true,
+  );
 }
 
 class MyApp extends StatelessWidget {
