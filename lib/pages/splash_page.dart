@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_page.dart';
 import 'home.dart';
@@ -20,23 +19,69 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> initApp() async {
-    await handleLocationPermission(); // ⬅️ Minta izin lokasi
-    try {
-      await openAutostartSettings();
-    } catch (e) {
-      print('[WARNING] Gagal buka autostart: $e');
-    }
+    await handleLocationPermission(); // ⬅️ Tetap minta izin lokasi dulu
 
-    try {
-      await openBatteryOptimizationSettings();
-    } catch (e) {
-      print('[WARNING] Gagal buka battery optimization: $e');
-    }
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    await Future.delayed(
-      const Duration(seconds: 1),
-    ); // Opsional: beri jeda animasi
-    await checkLoginStatus(); // ⬅️ Setelah dapat izin, lanjut cek login
+    await showConfirmDialog(
+      context,
+      title: 'Izinkan Alarm Presisi',
+      content:
+          'Untuk memastikan pengingat berjalan tepat waktu, aplikasi butuh izin alarm presisi. Buka pengaturan?',
+      onConfirm: openExactAlarmPermissionSettings,
+    );
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    await showConfirmDialog(
+      context,
+      title: 'Izinkan Autostart',
+      content:
+          'Agar aplikasi tetap aktif di latar belakang, izinkan aplikasi berjalan otomatis saat perangkat dinyalakan.',
+      onConfirm: openAutostartSettings,
+    );
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    await showConfirmDialog(
+      context,
+      title: 'Nonaktifkan Optimasi Baterai',
+      content:
+          'Optimasi baterai bisa menghentikan tracking. Izinkan aplikasi berjalan tanpa pembatasan baterai.',
+      onConfirm: openBatteryOptimizationSettings,
+    );
+
+    await Future.delayed(const Duration(seconds: 1));
+    await checkLoginStatus(); // ⬅️ Lanjut login
+  }
+
+  Future<void> showConfirmDialog(
+    BuildContext context, {
+    required String title,
+    required String content,
+    required Future<void> Function() onConfirm,
+  }) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Lewati'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await onConfirm();
+            },
+            child: const Text('Buka'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> checkLoginStatus() async {
@@ -76,24 +121,19 @@ class _SplashPageState extends State<SplashPage> {
     }
   }
 
-  Future<void> _showAlertDialog(String message) async {
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Izin Lokasi'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return const Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text("Menyiapkan aplikasi...", style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
   }
 }

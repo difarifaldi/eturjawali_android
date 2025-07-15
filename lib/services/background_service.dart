@@ -59,6 +59,13 @@ Future<void> handleLocationPermission() async {
   print('✅ Izin lokasi diberikan');
 }
 
+Future<void> openExactAlarmPermissionSettings() async {
+  final intent = AndroidIntent(
+    action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+  );
+  await intent.launch();
+}
+
 Future<void> checkLaporanInactivity(
   SharedPreferences prefs,
   FlutterLocalNotificationsPlugin notif,
@@ -264,6 +271,18 @@ void onStart(ServiceInstance service) async {
     } else {
       await prefs.remove('sprintId');
       print("❌ SprintId dihapus");
+    }
+  });
+
+  // Dengarkan update userId
+  service.on('updateUserId').listen((event) async {
+    final newUserId = event?['userId'];
+    if (newUserId != null) {
+      await prefs.setInt('userId', newUserId);
+      print("📥 userId diperbarui: $newUserId");
+    } else {
+      await prefs.remove('userId');
+      print("❌ userId dihapus");
     }
   });
 
