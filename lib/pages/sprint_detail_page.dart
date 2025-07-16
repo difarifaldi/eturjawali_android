@@ -44,6 +44,8 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   final PanelController _panelController = PanelController();
   bool isPanelOpen = false;
 
+  double _iconOffsetY = 80;
+
   @override
   void initState() {
     super.initState();
@@ -310,12 +312,59 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                         _buildSlidingPanel(sc),
                     onPanelSlide: (position) {
                       setState(() {
-                        isPanelOpen = position > 0.2; // Ubah sesuai kenyamanan
+                        isPanelOpen = position > 0.2;
+                        _iconOffsetY =
+                            80 +
+                            (250 - 80) *
+                                position; // minHeight + delta * position
                       });
                     },
                     body: _buildMainStack(),
                   )
                 : _buildMainStack(),
+          ),
+
+          Positioned(
+            right: 16,
+            bottom: _iconOffsetY + 16, // posisi dinamis berdasarkan panel
+            child: Column(
+              children: [
+                // Icon Dokumen
+                GestureDetector(
+                  onTap: () {
+                    print("📄 Icon dokumen ditekan");
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    margin: const EdgeInsets.only(
+                      bottom: 12,
+                    ), // jarak antar ikon
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.yellow,
+                    ),
+                    child: const Icon(Icons.description, color: Colors.black),
+                  ),
+                ),
+
+                // Icon orang
+                GestureDetector(
+                  onTap: () {
+                    print("👤 Icon orang ditekan");
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.yellow,
+                    ),
+                    child: const Icon(Icons.person, color: Colors.black),
+                  ),
+                ),
+              ],
+            ),
           ),
 
           // Tombol Laporan & Selesaikan di atas panel
