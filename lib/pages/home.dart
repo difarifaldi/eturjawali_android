@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(4.0),
+        padding: const EdgeInsets.all(24.0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
@@ -203,7 +203,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
 
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 20),
 
                       // SURAT PERINTAH
                       const Align(
@@ -216,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 2),
                       if (sprintList.isEmpty)
                         Card(
                           elevation: 4,
@@ -285,7 +285,7 @@ class _HomePageState extends State<HomePage> {
                           );
                         }),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 12),
 
                       // BERITA
                       const Align(
@@ -298,7 +298,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 2),
                       if (beritaList.isEmpty)
                         Card(
                           elevation: 4,
@@ -346,7 +346,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 8),
 
                       // Giat
                       Row(
@@ -374,7 +374,7 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 2),
                       giatList.isEmpty
                           ? Card(
                               elevation: 4,
@@ -457,7 +457,7 @@ class _HomePageState extends State<HomePage> {
                                                       fontSize: 16,
                                                     ),
                                                   ),
-                                                  const SizedBox(height: 8),
+                                                  const SizedBox(height: 2),
 
                                                   // Gambar jika ada
                                                   if (imageUrl != null)
@@ -493,7 +493,7 @@ class _HomePageState extends State<HomePage> {
                                                         ),
                                                       ),
                                                     ),
-                                                  const SizedBox(height: 8),
+                                                  const SizedBox(height: 2),
 
                                                   Text(
                                                     item.workingUnitName ?? '-',
@@ -534,7 +534,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 12),
 
                       const Align(
                         alignment: Alignment.centerLeft,
@@ -546,7 +546,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 18),
                       Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -571,7 +571,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 18),
 
                       // TOTAL ONLINE
                       if (statistik != null) ...[
@@ -581,28 +581,28 @@ class _HomePageState extends State<HomePage> {
                           jumlah: statistik!.statPengaturan,
                           percent: _percent(statistik!.statPengaturan),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         _buildStatistikCard(
                           icon: Icons.shield,
                           label: 'PENJAGAAN',
                           jumlah: statistik!.statPenjagaan,
                           percent: _percent(statistik!.statPenjagaan),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         _buildStatistikCard(
                           icon: Icons.directions_car,
                           label: 'PENGAWALAN',
                           jumlah: statistik!.statPengawalan,
                           percent: _percent(statistik!.statPengawalan),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         _buildStatistikCard(
                           icon: Icons.local_police,
                           label: 'PATROLI',
                           jumlah: statistik!.statPatroli,
                           percent: _percent(statistik!.statPatroli),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 12),
                       ],
                     ],
                   ),
@@ -650,7 +650,7 @@ class _HomePageState extends State<HomePage> {
                     (match) => '${match[1]}.',
                   ),
                   style: const TextStyle(
-                    fontSize: 4,
+                    fontSize: 24,
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
                   ),
