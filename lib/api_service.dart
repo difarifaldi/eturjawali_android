@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'utils.dart'; // agar bisa pakai sha1Hash
 import 'models/live_person.dart';
@@ -230,11 +231,22 @@ class ApiService {
     int sprintId = 0,
     int limit = 10,
     int offset = 0,
+    String? keyword,
+    String? jenis,
+    DateTime? from,
+    DateTime? to,
   }) async {
     final token = generateJWT(userId);
     final url = Uri.parse(
       '${_baseUrl}api/my_giat/$userId/$sprintId/$limit/$offset',
     );
+
+    final body = {
+      if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+      if (jenis != null && jenis.isNotEmpty) 'jenis': jenis,
+      if (from != null) 'from': DateFormat('dd/MM/yyyy').format(from),
+      if (to != null) 'to': DateFormat('dd/MM/yyyy').format(to),
+    };
 
     final response = await http.post(
       url,
@@ -242,9 +254,10 @@ class ApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({}), // sesuai contoh, data di-body kosong
+      body: jsonEncode(body),
     );
 
+    print('Request body: $body');
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] != null && data['success'] is List) {
