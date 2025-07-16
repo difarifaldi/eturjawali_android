@@ -12,6 +12,7 @@ import 'profile_page.dart';
 import 'all_giat_page.dart';
 import 'sprint_detail_page.dart';
 import 'giat_detail_page.dart';
+import 'live_map_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -536,16 +537,31 @@ class _HomePageState extends State<HomePage> {
 
                       const SizedBox(height: 12),
 
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Personel Aktif',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Personel Aktif',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      LiveMapPage(userId: widget.userId),
+                                ),
+                              );
+                            },
+                            child: const Text('Selengkapnya'),
+                          ),
+                        ],
                       ),
+
                       const SizedBox(height: 18),
                       Center(
                         child: Column(
