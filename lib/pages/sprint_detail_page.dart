@@ -30,6 +30,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   LatLng? userLocation;
   String currentTime = '';
 
+  final MapController mapController = MapController();
   final Distance distance = Distance();
   final LatLng lokasiKesatuan = LatLng(
     -6.244222176711041,
@@ -210,6 +211,22 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
       print("User Location: $userLocation");
     });
     print("Lokasi diperoleh: $userLocation");
+  }
+
+  //Ke Lokasi Saya
+  Future<void> goToMyLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      LatLng currentLatLng = LatLng(position.latitude, position.longitude);
+      mapController.move(currentLatLng, 16.0);
+
+      setState(() {
+        userLocation = currentLatLng;
+      });
+    } catch (e) {}
   }
 
   Future<void> saveSprintId() async {
@@ -395,6 +412,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         // Map
         if (userLocation != null)
           FlutterMap(
+            mapController: mapController,
             options: MapOptions(center: userLocation, zoom: 16),
             children: [
               TileLayer(
@@ -407,10 +425,10 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                     point: userLocation!,
                     width: 40,
                     height: 40,
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.red,
-                      size: 40,
+                    child: Image.asset(
+                      'assets/images/ic_ev_lantas.png',
+                      width: 40,
+                      height: 40,
                     ),
                   ),
                 ],
@@ -420,6 +438,23 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         else
           const Center(child: CircularProgressIndicator()),
 
+        //My Location
+        Positioned(
+          top: 100,
+          right: 10,
+          child: GestureDetector(
+            onTap: goToMyLocation,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue,
+              ),
+              child: const Icon(Icons.my_location, color: Colors.white),
+            ),
+          ),
+        ),
         // Waktu
         Positioned(
           top: 0,

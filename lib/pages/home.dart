@@ -505,7 +505,13 @@ class _HomePageState extends State<HomePage> {
                                                     ),
                                                   ),
                                                   const SizedBox(height: 4),
-                                                  Text(item.desc ?? '-'),
+                                                  Text(
+                                                    item.desc ?? '-',
+                                                    maxLines:
+                                                        2, // batasi ke 2 baris (bisa disesuaikan)
+                                                    overflow: TextOverflow
+                                                        .ellipsis, // jika lebih, tampilkan ...
+                                                  ),
 
                                                   const SizedBox(
                                                     height: 28,
