@@ -47,6 +47,7 @@ dependencies:
   sliding_up_panel: ^2.0.0+1
   image_picker: ^1.0.7
   android_alarm_manager_plus: ^4.0.7
+  flutter_map_marker_cluster: ^1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +86,7 @@ flutter:
   assets:
     - assets/images/ic_launcher.png
     - assets/images/ic_splash.png
+    - assets/images/ic_ev_lantas.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
