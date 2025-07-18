@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../api_service.dart';
+import 'laporan_review_page.dart';
 
 class LaporanPage extends StatefulWidget {
   final DateTime startTime;
@@ -936,7 +937,12 @@ class _LaporanPageState extends State<LaporanPage> {
     final namaPetugas = prefs.getString('nama') ?? 'Petugas';
     final namaKesatuan = prefs.getString('kesatuan_nama') ?? 'Kesatuan';
     final idKesatuan = prefs.getInt('id_kesatuan') ?? 0;
-    final nomorSprint = prefs.getString('nomorSurat') ?? 'SPRIN-001';
+
+    final rawNomorSurat = prefs.get('nomorSurat');
+    print('nomorSurat = $rawNomorSurat, type = ${rawNomorSurat.runtimeType}');
+
+    final nomorSprint = rawNomorSurat?.toString() ?? '-';
+
     final waktuEpoch = (DateTime.now().millisecondsSinceEpoch ~/ 1000)
         .toString();
 
@@ -1110,29 +1116,13 @@ class _LaporanPageState extends State<LaporanPage> {
                         now.millisecondsSinceEpoch,
                       );
 
-                      print(
-                        "Laporan berhasil dikirim pukul ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}",
-                      );
-
-                      await ApiService.submit(
-                        userId: prefs.getInt('userId') ?? 0,
-                        data: data,
-                      );
                       print(data);
-                      // Tampilkan data di dialog
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Data Laporan"),
-                          content: SingleChildScrollView(
-                            child: Text(data.toString()),
-                          ),
-                          actions: [
-                            TextButton(
-                              child: const Text("Tutup"),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ],
+                      // Navigasi ke halaman review
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              LaporanReviewPage(laporan: data),
                         ),
                       );
                     },
