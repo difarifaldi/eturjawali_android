@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../api_service.dart';
 
 class LaporanPage extends StatefulWidget {
@@ -928,17 +929,16 @@ class _LaporanPageState extends State<LaporanPage> {
     final lokasiLengkap = await getAlamatLengkap(lat, lng);
     final prefs = await SharedPreferences.getInstance();
 
-    final random = Random();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final randomDigits = random.nextInt(1000); // 0 - 999
-    final idKegiatan = int.parse('$timestamp$randomDigits');
-
+    final uuid = Uuid();
+    final idLokal = uuid.v4();
     final userId = prefs.getInt('userId') ?? 0;
     final sprintId = prefs.getInt('sprintId') ?? 0;
     final namaPetugas = prefs.getString('nama') ?? 'Petugas';
     final namaKesatuan = prefs.getString('kesatuan_nama') ?? 'Kesatuan';
     final idKesatuan = prefs.getInt('id_kesatuan') ?? 0;
     final nomorSprint = prefs.getString('nomorSurat') ?? 'SPRIN-001';
+    final waktuEpoch = (DateTime.now().millisecondsSinceEpoch ~/ 1000)
+        .toString();
 
     final laporan = <String, dynamic>{
       'jenis': _selectedJenisLaporan,
@@ -951,11 +951,12 @@ class _LaporanPageState extends State<LaporanPage> {
       'id_petugas': userId,
       'id_sprin': sprintId,
       'id_kesatuan': idKesatuan,
+      'id_lokal': idLokal,
       'nama_kesatuan': namaKesatuan,
       'nama_petugas': namaPetugas,
       'nomor_sprint': nomorSprint,
-      'waktu_simpan': DateTime.now().toIso8601String(),
-      'waktu': DateTime.now().toIso8601String(),
+      'waktu_simpan': waktuEpoch,
+      'waktu': waktuEpoch,
     };
 
     // Tambahan param dan files
