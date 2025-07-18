@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 import '../api_service.dart';
 import '../models/checkin_request.dart';
@@ -232,6 +233,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
     } catch (e) {}
   }
 
+  //Simpan sprint ke shared
   Future<void> saveSprintId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('sprintId', widget.sprintId);
@@ -245,6 +247,13 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
       });
       print("📤 Kirim sprintId ke background service");
     });
+  }
+
+  //Dapatkan laporan
+  Future<List<Map<String, dynamic>>> getDraftLaporan() async {
+    final prefs = await SharedPreferences.getInstance();
+    final draftList = prefs.getStringList('draftLaporan') ?? [];
+    return draftList.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
   }
 
   //Dialog Alasan
@@ -536,10 +545,51 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: ListView(
-                controller: controller,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: const [Text('Belum ada kegiatan.')],
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: getDraftLaporan(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return const Center(child: CircularProgressIndicator());
+
+                  final drafts = snapshot.data!;
+                  if (drafts.isEmpty) {
+                    return const Center(child: Text('Belum ada draft.'));
+                  }
+
+                  return ListView.builder(
+                    controller: controller,
+                    itemCount: drafts.length,
+                    itemBuilder: (context, index) {
+                      final draft = drafts[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(draft['jenis'] ?? 'Tanpa Jenis'),
+                          subtitle: Text(draft['lokasi'] ?? 'Tanpa Lokasi'),
+                          onTap: () {
+                            // bisa tambahkan aksi misal edit draft
+                          },
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final draftList =
+                                  prefs.getStringList('draftLaporan') ?? [];
+
+                              draftList.removeAt(index);
+                              await prefs.setStringList(
+                                'draftLaporan',
+                                draftList,
+                              );
+
+                              setState(() {}); // refresh panel
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
