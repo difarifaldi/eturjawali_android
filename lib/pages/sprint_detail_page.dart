@@ -15,11 +15,13 @@ import 'laporan_page.dart';
 class SprintDetailPage extends StatefulWidget {
   final int sprintId;
   final int userId;
+  final String nomorSurat;
 
   const SprintDetailPage({
     super.key,
     required this.sprintId,
     required this.userId,
+    required this.nomorSurat,
   });
 
   @override
@@ -131,6 +133,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('sprintId');
+      await prefs.remove('nomorSurat');
       await prefs.remove('isTimerRunning');
       await prefs.remove('startTime');
 
@@ -232,6 +235,7 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
   Future<void> saveSprintId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('sprintId', widget.sprintId);
+    await prefs.setString('nomorSurat', widget.nomorSurat);
     print("📍 sprintId ${widget.sprintId} tersimpan ke SharedPreferences");
 
     // 🔁 Tambah delay agar service isolate siap

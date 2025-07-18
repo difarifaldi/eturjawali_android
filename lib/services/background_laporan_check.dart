@@ -4,6 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 @pragma('vm:entry-point')
 void backgroundLaporanCheck() async {
   final prefs = await SharedPreferences.getInstance();
+
+  // ✅ Tambahkan ini untuk memeriksa apakah sprint sedang aktif
+  final sprintId = prefs.getInt('sprintId');
+  if (sprintId == null) {
+    print('[ALARM_MANAGER]  Tidak ada sprintId aktif, notifikasi dibatalkan');
+    return;
+  }
+
   final notif = FlutterLocalNotificationsPlugin();
 
   const initSettings = InitializationSettings(
@@ -33,8 +41,8 @@ void backgroundLaporanCheck() async {
       payload: 'laporan',
     );
     await prefs.setInt('lastNotifTimestamp', now);
-    print('[ALARM_MANAGER] Notifikasi dikirim via alarm manager');
+    print('[ALARM_MANAGER]  Notifikasi dikirim via alarm manager');
   } else {
-    print('[ALARM_MANAGER] Tidak perlu kirim notifikasi');
+    print('[ALARM_MANAGER]  Tidak perlu kirim notifikasi');
   }
 }

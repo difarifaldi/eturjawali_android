@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../api_service.dart';
 
 class LaporanPage extends StatefulWidget {
   final DateTime startTime;
@@ -916,27 +917,67 @@ class _LaporanPageState extends State<LaporanPage> {
   }
 
   // Map Data
-  Map<String, dynamic> getLaporanData() {
+  Future<Map<String, dynamic>> getLaporanData() async {
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final lat = position.latitude;
+    final lng = position.longitude;
+
+    final lokasiLengkap = await getAlamatLengkap(lat, lng);
+    final prefs = await SharedPreferences.getInstance();
+
+    final random = Random();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final randomDigits = random.nextInt(1000); // 0 - 999
+    final idKegiatan = int.parse('$timestamp$randomDigits');
+
+    final userId = prefs.getInt('userId') ?? 0;
+    final sprintId = prefs.getInt('sprintId') ?? 0;
+    final namaPetugas = prefs.getString('nama') ?? 'Petugas';
+    final namaKesatuan = prefs.getString('kesatuan_nama') ?? 'Kesatuan';
+    final idKesatuan = prefs.getInt('id_kesatuan') ?? 0;
+    final nomorSprint = prefs.getString('nomorSurat') ?? 'SPRIN-001';
+
     final laporan = <String, dynamic>{
-      'jenis_laporan': _selectedJenisLaporan,
-      'lokasi': _selectedLokasi,
-      'kegiatan': _selectedKegiatan,
-      'detail': _detailController.text,
-      'lambung': _lambungController.text,
+      'jenis': _selectedJenisLaporan,
+      'catatan': _detailController.text,
+      'no_lambung': _lambungController.text,
+      'lokasi': lokasiLengkap,
+      'latitude': lat,
+      'longitude': lng,
+      'status': 1,
+      'id_petugas': userId,
+      'id_sprin': sprintId,
+      'id_kesatuan': idKesatuan,
+      'nama_kesatuan': namaKesatuan,
+      'nama_petugas': namaPetugas,
+      'nomor_sprint': nomorSprint,
+      'waktu_simpan': DateTime.now().toIso8601String(),
+      'waktu': DateTime.now().toIso8601String(),
     };
 
+    // Tambahan param dan files
     if (_selectedJenisLaporan == 'PENGATURAN') {
-      laporan['jenis_gatur'] = _selectedJenisGatur;
-      laporan['media'] = _mediaListPengaturan.map((file) => file.path).toList();
+      laporan['param1'] = _selectedLokasi;
+      laporan['param2'] = _selectedJenisGatur;
+      laporan['param3'] = _selectedKegiatan;
+      laporan['files'] = _mediaListPengaturan.map((file) => file.path).toList();
     } else if (_selectedJenisLaporan == 'PENJAGAAN') {
-      laporan['media'] = _mediaListPenjagaan.map((file) => file.path).toList();
+      laporan['param1'] = _selectedLokasi;
+      laporan['param2'] = _selectedKegiatan;
+      laporan['files'] = _mediaListPenjagaan.map((file) => file.path).toList();
     } else if (_selectedJenisLaporan == 'PENGAWALAN') {
+      laporan['param1'] = _selectedKegiatan;
       laporan['rute'] = _ruteListPengawalan;
-      laporan['media'] = _mediaListPengawalan.map((file) => file.path).toList();
+      laporan['files'] = _mediaListPengawalan.map((file) => file.path).toList();
     } else if (_selectedJenisLaporan == 'PATROLI') {
-      laporan['jenis_kendaraan'] = _selectedJenisGatur;
+      laporan['param1'] = _selectedJenisGatur;
+      laporan['param2'] = _selectedLokasi;
+      laporan['param3'] = _selectedKegiatan;
       laporan['rute'] = _ruteListPatroli;
-      laporan['media'] = _mediaListPatroli.map((file) => file.path).toList();
+      laporan['files'] = _mediaListPatroli.map((file) => file.path).toList();
     }
 
     return laporan;
@@ -1056,7 +1097,7 @@ class _LaporanPageState extends State<LaporanPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      final data = getLaporanData();
+                      final data = await getLaporanData();
 
                       // Simpan data ke SharedPreferences
                       final prefs = await SharedPreferences.getInstance();
@@ -1069,9 +1110,14 @@ class _LaporanPageState extends State<LaporanPage> {
                       );
 
                       print(
-                        "✅ Laporan berhasil dikirim pukul ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}",
+                        "Laporan berhasil dikirim pukul ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}",
                       );
 
+                      await ApiService.submit(
+                        userId: prefs.getInt('userId') ?? 0,
+                        data: data,
+                      );
+                      print(data);
                       // Tampilkan data di dialog
                       showDialog(
                         context: context,

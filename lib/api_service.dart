@@ -387,6 +387,34 @@ class ApiService {
     }
   }
 
+  //Kirim Laporan
+  static Future<bool> submit({
+    required int userId,
+    required Map<String, dynamic> data,
+  }) async {
+    final token = generateJWT(userId);
+    final url = Uri.parse('${_baseUrl}api/submit');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(data),
+    );
+
+    print("[Kirim Laporan] Response: ${response.statusCode}");
+    print('[Kirim Laporan] Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final dataRes = jsonDecode(response.body);
+      return dataRes['success'] != null;
+    } else {
+      throw Exception('Gagal kirim Laporan: ${response.statusCode}');
+    }
+  }
+
   //Update Profile
   static Future<bool> updateProfile({
     required int userId,

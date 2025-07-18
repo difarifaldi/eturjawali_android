@@ -244,6 +244,7 @@ class _HomePageState extends State<HomePage> {
                                 MaterialPageRoute(
                                   builder: (_) => SprintDetailPage(
                                     sprintId: item.id,
+                                    nomorSurat: item.nomor,
                                     userId: widget.userId,
                                   ),
                                 ),
