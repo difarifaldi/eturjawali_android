@@ -540,16 +540,21 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
           if (isPanelOpen) ...[
             const SizedBox(height: 12),
             const Text(
-              'Daftar Kegiatan',
+              'DRAFT',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 6),
+            // Garis bawah kuning dengan lebar terbatas
+            Container(height: 2, width: 100, color: Colors.amber),
+
             const SizedBox(height: 12),
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: getDraftLaporan(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData)
+                  if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
 
                   final drafts = snapshot.data!;
                   if (drafts.isEmpty) {
@@ -561,31 +566,114 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
                     itemCount: drafts.length,
                     itemBuilder: (context, index) {
                       final draft = drafts[index];
-                      return Card(
-                        child: ListTile(
-                          title: Text(draft['jenis'] ?? 'Tanpa Jenis'),
-                          subtitle: Text(draft['lokasi'] ?? 'Tanpa Lokasi'),
-                          onTap: () {
-                            // bisa tambahkan aksi misal edit draft
-                          },
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () async {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              final draftList =
-                                  prefs.getStringList('draftLaporan') ?? [];
+                      final epochStr = draft['waktu'];
+                      String waktuFormatted = '-';
+                      if (epochStr != null) {
+                        final epoch = int.tryParse(epochStr.toString());
+                        if (epoch != null) {
+                          final dt = DateTime.fromMillisecondsSinceEpoch(
+                            epoch * 1000,
+                          );
+                          waktuFormatted =
+                              '${dt.day.toString().padLeft(2, '0')} ${_bulan(dt.month)} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                        }
+                      }
 
-                              draftList.removeAt(index);
-                              await prefs.setStringList(
-                                'draftLaporan',
-                                draftList,
-                              );
+                      final nomor = draft['nomor_sprint'] ?? '-';
+                      final catatan = draft['catatan'] ?? '-';
 
-                              setState(() {}); // refresh panel
-                            },
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            draft['jenis'] ?? 'Tanpa Jenis',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            nomor,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            catatan.length > 100
+                                                ? catatan.substring(0, 100) +
+                                                      '...'
+                                                : catatan,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          waktuFormatted,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () async {
+                                            final prefs =
+                                                await SharedPreferences.getInstance();
+                                            final draftList =
+                                                prefs.getStringList(
+                                                  'draftLaporan',
+                                                ) ??
+                                                [];
+                                            draftList.removeAt(index);
+                                            await prefs.setStringList(
+                                              'draftLaporan',
+                                              draftList,
+                                            );
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 12),
+                            height: 1,
+                            color: Colors.grey.withOpacity(0.3),
+                          ),
+                        ],
                       );
                     },
                   );
@@ -596,6 +684,24 @@ class _SprintDetailPageState extends State<SprintDetailPage> {
         ],
       ),
     );
+  }
+
+  String _bulan(int bulan) {
+    const namaBulan = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return namaBulan[bulan - 1];
   }
 
   Widget _buildStartButton() {
